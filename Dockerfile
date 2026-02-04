@@ -34,5 +34,4 @@ ENV PORT=8000
 EXPOSE 8000
 
 # Run commands (Migration + App)
-# We use a shell script entrypoint or just verify connection then run
-CMD ["sh", "-c", "cd backend && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
