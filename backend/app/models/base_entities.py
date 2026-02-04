@@ -52,6 +52,7 @@ class PropertyBase(SQLModel):
     status: str # available, rented, sold
     price: Optional[float] = None # Listing price
     owner_name: Optional[str] = None
+    image_url: Optional[str] = None
     
 class Property(PropertyBase, TimeStampedModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

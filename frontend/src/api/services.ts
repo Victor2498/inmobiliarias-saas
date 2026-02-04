@@ -49,6 +49,7 @@ export interface Property {
   price: number;
   owner_name: string;
   agency_id: number;
+  image_url?: string;
 }
 
 export const PropertyService = {

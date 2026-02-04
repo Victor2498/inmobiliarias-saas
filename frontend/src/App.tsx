@@ -299,6 +299,16 @@ function PropertiesPage({ isDarkMode }: { isDarkMode: boolean }) {
               <p className="text-sm text-slate-500 mb-4">{prop.city} • {
                 prop.type === 'apartment' ? 'Departamento' : prop.type === 'house' ? 'Casa' : 'Local'
               }</p>
+              {prop.image_url && (
+                <div className="mb-4 rounded-xl overflow-hidden aspect-video bg-slate-100 dark:bg-slate-800">
+                  <img
+                    src={prop.image_url}
+                    alt={prop.address}
+                    className="w-full h-full object-cover"
+                    onError={(e: any) => e.target.style.display = 'none'}
+                  />
+                </div>
+              )}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                 <span className="text-xs text-slate-400">Propietario: {prop.owner_name}</span>
                 <button className="text-brand-500 text-sm font-medium hover:underline">Ver detalles</button>
@@ -326,7 +336,8 @@ function PropertyModal({ isDarkMode, onClose, onSubmit }: any) {
     type: 'apartment',
     status: 'available',
     price: '',
-    owner_name: ''
+    owner_name: '',
+    image_url: ''
   });
 
   return (
@@ -397,6 +408,15 @@ function PropertyModal({ isDarkMode, onClose, onSubmit }: any) {
               className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-200'}`}
               value={formData.owner_name}
               onChange={e => setFormData({ ...formData, owner_name: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 opacity-70">URL de la Imagen (Opcional)</label>
+            <input
+              placeholder="https://ejemplo.com/foto.jpg"
+              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-200'}`}
+              value={formData.image_url}
+              onChange={e => setFormData({ ...formData, image_url: e.target.value })}
             />
           </div>
           <div className="flex gap-4 pt-4">
