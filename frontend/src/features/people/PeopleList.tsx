@@ -21,6 +21,8 @@ const PeopleList: React.FC = () => {
         }
     };
 
+    if (loading) return <div className="p-6 text-slate-400">Cargando personas...</div>;
+
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold text-white mb-6">Inquilinos y Propietarios</h1>
