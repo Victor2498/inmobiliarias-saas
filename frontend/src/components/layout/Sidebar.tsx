@@ -14,8 +14,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, active = fal
     <Link
         to={to}
         className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-all ${active
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'hover:bg-slate-800 hover:text-white'
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+            : 'hover:bg-slate-800 hover:text-white'
             }`}
     >
         {icon}
@@ -34,7 +34,8 @@ const Sidebar: React.FC = () => {
             <nav className="flex-1 space-y-2">
                 <SidebarItem to="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" active={location.pathname === '/dashboard'} />
                 <SidebarItem to="/properties" icon={<Home size={20} />} label="Propiedades" active={location.pathname === '/properties'} />
-                <SidebarItem to="/contracts" icon={<FileText size={20} />} label="Contratos" active={location.pathname === '/contracts' || location.pathname === '/'} />
+                <SidebarItem to="/people" icon={<Users size={20} />} label="Personas" active={location.pathname === '/people'} />
+                <SidebarItem to="/contracts" icon={<FileText size={20} />} label="Contratos" active={location.pathname === '/contracts'} />
                 <SidebarItem to="/whatsapp" icon={<MessageSquare size={20} />} label="WhatsApp" active={location.pathname === '/whatsapp'} />
             </nav>
 
