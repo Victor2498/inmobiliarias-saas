@@ -11,3 +11,4 @@ httpx
 openai
 alembic
 python-multipart
+email-validator
