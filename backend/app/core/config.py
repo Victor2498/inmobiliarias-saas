@@ -25,9 +25,18 @@ class Settings(BaseSettings):
     @property
     def get_database_url(self) -> str:
         if self.DATABASE_URL:
-            # Si la URL viene de Supabase y tiene @ en la contraseña, 
-            # SQLAlchemy la manejará mejor si nos aseguramos que sea el string correcto.
-            return self.DATABASE_URL.replace("postgres://", "postgresql://")
+            # Reemplazar esquema si es necesario
+            url = self.DATABASE_URL.replace("postgres://", "postgresql://")
+            # Eliminar parámetros que confunden a psycopg2 (como pgbouncer=true)
+            if "?" in url:
+                base_url, query = url.split("?", 1)
+                # Filtramos pgbouncer de la query string
+                params = [p for p in query.split("&") if "pgbouncer" not in p]
+                if params:
+                    url = f"{base_url}?{'&'.join(params)}"
+                else:
+                    url = base_url
+            return url
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     # Redis (Rate Limiting / Session)
