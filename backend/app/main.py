@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from app.api.middleware import TenantMiddleware
 from app.core.config import settings
 
@@ -26,10 +29,26 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Rutas
+    # Rutas API
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
-    @app.get("/")
+    # Servir archivos estáticos del frontend
+    if os.path.exists("static"):
+        app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
+        
+        @app.get("/{full_path:path}")
+        async def serve_spa(full_path: str):
+            # Si la ruta empieza con API_V1_STR, FastAPI ya la manejó arriba.
+            # Si no, servimos el index.html para que React Router tome el control.
+            
+            # Evitar colisión con archivos físicos en static (como favicon, etc)
+            file_path = os.path.join("static", full_path)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+                
+            return FileResponse("static/index.html")
+
+    @app.get("/health")
     async def health_check():
         return {"status": "healthy", "service": settings.PROJECT_NAME}
 
