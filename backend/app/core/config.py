@@ -25,7 +25,9 @@ class Settings(BaseSettings):
     @property
     def get_database_url(self) -> str:
         if self.DATABASE_URL:
-            return self.DATABASE_URL
+            # Si la URL viene de Supabase y tiene @ en la contraseña, 
+            # SQLAlchemy la manejará mejor si nos aseguramos que sea el string correcto.
+            return self.DATABASE_URL.replace("postgres://", "postgresql://")
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     # Redis (Rate Limiting / Session)
@@ -44,8 +46,8 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
     
     # Integraciones
-    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar")
-    EVOLUTION_API_TOKEN: str = os.getenv("EVOLUTION_API_TOKEN") # Cambiado para coincidir con captura
+    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
+    EVOLUTION_API_TOKEN: str = os.getenv("EVOLUTION_API_TOKEN")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
 
     class Config:
