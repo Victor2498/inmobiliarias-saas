@@ -24,20 +24,20 @@ class Settings(BaseSettings):
 
     @property
     def get_database_url(self) -> str:
-        if self.DATABASE_URL:
-            # Reemplazar esquema si es necesario
-            url = self.DATABASE_URL.replace("postgres://", "postgresql://")
-            # Eliminar parámetros que confunden a psycopg2 (como pgbouncer=true)
-            if "?" in url:
-                base_url, query = url.split("?", 1)
-                # Filtramos pgbouncer de la query string
-                params = [p for p in query.split("&") if "pgbouncer" not in p]
-                if params:
-                    url = f"{base_url}?{'&'.join(params)}"
-                else:
-                    url = base_url
-            return url
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        # Priorizar DATABASE_URL de entorno
+        url = os.getenv("DATABASE_URL")
+        if not url:
+            url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        
+        # Corrección de esquema
+        url = url.replace("postgres://", "postgresql://")
+        
+        # Limpieza radical de parámetros (?...)
+        # El pooler de Supabase a veces manda pgbouncer=true que rompe a psycopg2
+        if "?" in url:
+            url = url.split("?")[0]
+            
+        return url
     
     # Redis (Rate Limiting / Session)
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
