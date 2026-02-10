@@ -32,10 +32,14 @@ class Settings(BaseSettings):
         # Corrección de esquema
         url = url.replace("postgres://", "postgresql://")
         
-        # Limpieza radical de parámetros (?...)
-        # El pooler de Supabase a veces manda pgbouncer=true que rompe a psycopg2
+        # Limpieza selectiva de parámetros que rompen psycopg2 (como pgbouncer)
         if "?" in url:
-            url = url.split("?")[0]
+            base_url, query = url.split("?", 1)
+            params = [p for p in query.split("&") if "pgbouncer" not in p]
+            if params:
+                url = f"{base_url}?{'&'.join(params)}"
+            else:
+                url = base_url
             
         return url
     
