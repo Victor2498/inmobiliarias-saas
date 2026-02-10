@@ -38,19 +38,9 @@ class Settings(BaseSettings):
             # Fallback a construcción manual
             url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         
-        # Log de diagnóstico (seguro y sanitizado)
-        try:
-            # Parseo básico para el log
-            parts = url.split("@")
-            if len(parts) > 1:
-                creds = parts[0].split("://")[-1]
-                user = creds.split(":")[0]
-                host_port = parts[1].split("/")[0]
-                print(f"DEBUG: Conectando como usuario [{user}] al host [{host_port}]")
-            else:
-                print(f"DEBUG: URL de base de datos con formato inusual.")
-        except Exception as e:
-            print(f"DEBUG: No se pudo parsear la URL para el log: {e}")
+        # Limpieza de parámetros (?...) que rompen psycopg2
+        if "?" in url:
+            url = url.split("?")[0]
             
         return url
     
