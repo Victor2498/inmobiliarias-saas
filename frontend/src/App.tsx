@@ -7,12 +7,14 @@ import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
 import ContractList from './features/contracts/ContractList';
 
+import LoginPage from './features/auth/LoginPage';
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta de Login provisional */}
-        <Route path="/login" element={<div className="text-white p-10">Login Page (Placeholder)</div>} />
+        {/* Ruta de Login */}
+        <Route path="/login" element={<LoginPage />} />
 
         {/* Rutas Protegidas */}
         <Route element={<AuthGuard />}>
