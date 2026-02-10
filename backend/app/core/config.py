@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     def get_database_url(self) -> str:
         # Priorizar DATABASE_URL de entorno
         url = os.getenv("DATABASE_URL")
+        if url:
+            url = url.strip().strip('"').strip("'")
+        
         if not url:
             url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         
