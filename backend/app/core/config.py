@@ -35,14 +35,20 @@ class Settings(BaseSettings):
         # Corrección de esquema
         url = url.replace("postgres://", "postgresql://")
         
-        # Limpieza selectiva de parámetros que rompen psycopg2 (como pgbouncer)
+        # Limpieza radical de parámetros (?...)
+        # El pooler de Supabase a veces manda pgbouncer=true que rompe a psycopg2
         if "?" in url:
-            base_url, query = url.split("?", 1)
-            params = [p for p in query.split("&") if "pgbouncer" not in p]
-            if params:
-                url = f"{base_url}?{'&'.join(params)}"
-            else:
-                url = base_url
+            url = url.split("?")[0]
+        
+        # Log de diagnóstico (sin contraseña)
+        debug_url = url
+        if ":" in url and "@" in url:
+            creds, rest = url.split("@", 1)
+            if ":" in creds:
+                proto, user_pass = creds.split("://", 1)
+                user = user_pass.split(":")[0]
+                debug_url = f"{proto}://{user}:****@{rest}"
+        print(f"DEBUG: Intentando conectar a: {debug_url}")
             
         return url
     
