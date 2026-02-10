@@ -1,9 +1,11 @@
-from app.core.database import engine
+from app.core.config import settings
+from sqlalchemy import create_engine
 from app.infrastructure.persistence.models import Base
 from app.infrastructure.persistence.business_models import Base as BusinessBase
 
 def init_db():
     print("Iniciando creación de tablas...")
+    engine = create_engine(settings.get_database_url)
     # Esto creará todas las tablas definidas en los modelos que hereden de Base
     Base.metadata.create_all(bind=engine)
     print("Tablas de sistema creadas.")
