@@ -24,31 +24,33 @@ class Settings(BaseSettings):
 
     @property
     def get_database_url(self) -> str:
-        # Priorizar DATABASE_URL de entorno
-        url = os.getenv("DATABASE_URL")
-        if url:
-            url = url.strip().strip('"').strip("'")
+        # 1. Obtener la URL directamente del entorno para evitar filtrado de Pydantic
+        env_url = os.getenv("DATABASE_URL")
         
-        if not url:
+        if env_url and env_url.strip():
+            url = env_url.strip().strip('"').strip("'")
+            # Corrección de esquema
+            url = url.replace("postgres://", "postgresql://")
+            # Limpieza de parámetros (?...) que rompen psycopg2
+            if "?" in url:
+                url = url.split("?")[0]
+        else:
+            # Fallback a construcción manual
             url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         
-        # Corrección de esquema
-        url = url.replace("postgres://", "postgresql://")
-        
-        # Limpieza radical de parámetros (?...)
-        # El pooler de Supabase a veces manda pgbouncer=true que rompe a psycopg2
-        if "?" in url:
-            url = url.split("?")[0]
-        
-        # Log de diagnóstico (sin contraseña)
-        debug_url = url
-        if ":" in url and "@" in url:
-            creds, rest = url.split("@", 1)
-            if ":" in creds:
-                proto, user_pass = creds.split("://", 1)
-                user = user_pass.split(":")[0]
-                debug_url = f"{proto}://{user}:****@{rest}"
-        print(f"DEBUG: Intentando conectar a: {debug_url}")
+        # Log de diagnóstico (seguro y sanitizado)
+        try:
+            # Parseo básico para el log
+            parts = url.split("@")
+            if len(parts) > 1:
+                creds = parts[0].split("://")[-1]
+                user = creds.split(":")[0]
+                host_port = parts[1].split("/")[0]
+                print(f"DEBUG: Conectando como usuario [{user}] al host [{host_port}]")
+            else:
+                print(f"DEBUG: URL de base de datos con formato inusual.")
+        except Exception as e:
+            print(f"DEBUG: No se pudo parsear la URL para el log: {e}")
             
         return url
     
