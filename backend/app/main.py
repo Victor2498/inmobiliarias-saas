@@ -11,9 +11,10 @@ from app.api.v1.endpoints import api_router
 def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.PROJECT_NAME,
-        version="1.0.0",
+        version="1.0.1", # Incrementamos versión
         openapi_url=f"{settings.API_V1_STR}/openapi.json"
     )
+    print("🚀 SISTEMA INMOBILIARIO v1.0.1 - FRONTEND UNIFICADO CARGANDO...")
 
     # Middlewares
     app.add_middleware(TenantMiddleware)

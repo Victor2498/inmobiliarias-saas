@@ -1,9 +1,11 @@
 # Etapa 1: Build del Frontend
-FROM node:18 AS frontend-builder
+FROM node:18-alpine AS frontend-builder
 WORKDIR /build-frontend
 COPY frontend/package*.json ./
-RUN npm install
+# Instalación sin auditoría para ahorrar memoria
+RUN npm install --no-audit --no-fund
 COPY frontend/ ./
+# Build directo saltando chequeos extras
 RUN npx vite build
 
 # Etapa 2: Runtime del Backend
@@ -23,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
-# Copiar el build del frontend a la carpeta static del backend
+# Copiar el build del frontend
 COPY --from=frontend-builder /build-frontend/dist ./static
 
 EXPOSE 8000
