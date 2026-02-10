@@ -1,48 +1,30 @@
-from typing import List, Union, Optional
-from pydantic import AnyHttpUrl, validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import os
+from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Inmonea"
+    PROJECT_NAME: str = "SaaS Inmobiliario Enterprise"
     API_V1_STR: str = "/api/v1"
     
-    # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
-
-    # Database
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    DATABASE_URI: str = None  # To be assembled
-
-    @validator("DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: str | None, values: dict[str, any]) -> str:
-        if isinstance(v, str):
-            return v
-        return str(f"postgresql+asyncpg://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@{values.get('POSTGRES_SERVER')}/{values.get('POSTGRES_DB')}")
-
-    # Security
-    SECRET_KEY: str
+    # Seguridad
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 días
+    
+    # Database
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    
+    # Redis (Rate Limiting / Session)
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
+    
+    # Integraciones
+    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL")
+    EVOLUTION_API_KEY: str = os.getenv("EVOLUTION_API_KEY")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
 
-    # Evolution API
-    EVOLUTION_API_URL: str
-    EVOLUTION_API_TOKEN: str
-    INSTANCE_NAME: str = "Inmonea"
-
-    # OpenAI
-    OPENAI_API_KEY: Optional[str] = None
-
-    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+    class Config:
+        case_sensitive = True
 
 settings = Settings()
