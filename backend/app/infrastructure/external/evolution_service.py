@@ -8,15 +8,15 @@ class EvolutionService:
     def __init__(self):
         self.base_url = settings.EVOLUTION_API_URL
         self.headers = {
-            "apikey": settings.EVOLUTION_API_KEY,
+            "apikey": settings.EVOLUTION_API_TOKEN,
             "Content-Type": "application/json"
         }
 
-    async def create_instance(self, instance_name: string):
+    async def create_instance(self, instance_name: str):
         url = f"{self.base_url}/instance/create"
         payload = {
             "instanceName": instance_name,
-            "token": settings.EVOLUTION_API_KEY, # O un token específico
+            "token": settings.EVOLUTION_API_TOKEN, # O un token específico
             "qrcode": True
         }
         async with httpx.AsyncClient() as client:
