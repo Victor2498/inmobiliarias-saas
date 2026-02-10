@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.gitignore
+__pycache__
+*.pyc
+.env
+.env.*
+!.env.production
+backend/venv
+frontend/node_modules
+frontend/dist
+docker-compose*
+README.md
+testing_guide.md
+docs

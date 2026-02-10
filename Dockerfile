@@ -1,10 +1,10 @@
 # Etapa 1: Build del Frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:18 AS frontend-builder
 WORKDIR /build-frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-RUN npm run build
+RUN npx vite build
 
 # Etapa 2: Runtime del Backend
 FROM python:3.11-slim
