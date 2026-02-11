@@ -22,6 +22,8 @@ def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
         email=tenant.email,
         hashed_password=hashing.get_password_hash(tenant.password),
         is_active=True,
+        plan=tenant.plan,
+        whatsapp_enabled=tenant.whatsapp_enabled,
         preferences={"theme": "light"}
     )
     db.add(new_tenant)
@@ -42,6 +44,10 @@ def update_tenant(tenant_id: str, update_data: TenantUpdate, db: Session = Depen
     
     if update_data.is_active is not None:
         tenant.is_active = update_data.is_active
+    if update_data.plan is not None:
+        tenant.plan = update_data.plan
+    if update_data.whatsapp_enabled is not None:
+        tenant.whatsapp_enabled = update_data.whatsapp_enabled
     if update_data.preferences is not None:
         # Merge de preferencias
         tenant.preferences = {**tenant.preferences, **update_data.preferences}

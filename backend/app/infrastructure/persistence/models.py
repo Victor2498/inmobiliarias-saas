@@ -13,7 +13,20 @@ class TenantModel(Base):
     hashed_password = Column(String, nullable=False)
     plan_id = Column(String, default="lite")
     is_active = Column(Boolean, default=True)
+    plan = Column(String, default="lite") # lite, basic, premium
+    whatsapp_enabled = Column(Boolean, default=False)
     preferences = Column(JSON, default={"theme": "light"})
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class WhatsAppInstanceModel(Base):
+    __tablename__ = "whatsapp_instances"
+    id = Column(String, primary_key=True, index=True)
+    tenant_id = Column(String, ForeignKey("tenants.id"), unique=True)
+    instance_name = Column(String, unique=True)
+    status = Column(String, default="NOT_CONNECTED") # NOT_CONNECTED, QR_PENDING, CONNECTED, DISCONNECTED, ERROR
+    qr_code = Column(String, nullable=True) # Almacena el QR en base64 o string
+    last_connected_at = Column(DateTime, nullable=True)
+    error_message = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class UserModel(Base):

@@ -37,6 +37,8 @@ def login_tenant(data: TenantLogin, db: Session = Depends(get_db)):
             "email": tenant.email,
             "role": "INMOBILIARIA",
             "tenant_id": tenant.id,
+            "plan": tenant.plan,
+            "whatsapp_enabled": tenant.whatsapp_enabled,
             "preferences": tenant.preferences
         }
     }

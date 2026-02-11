@@ -18,7 +18,11 @@ class TenantCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
+    plan: Optional[str] = "lite"
+    whatsapp_enabled: Optional[bool] = False
 
 class TenantUpdate(BaseModel):
     is_active: Optional[bool] = None
+    plan: Optional[str] = None
+    whatsapp_enabled: Optional[bool] = None
     preferences: Optional[Dict[str, Any]] = None
