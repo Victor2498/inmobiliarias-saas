@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Home, FileText, MessageSquare, Settings, LogOut, Users, Shield } from 'lucide-react';
+import { LayoutDashboard, Home, FileText, MessageSquare, Settings, LogOut, Users, Shield, Receipt } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -43,6 +43,7 @@ const Sidebar: React.FC = () => {
                 <SidebarItem to="/properties" icon={<Home size={22} />} label="Propiedades" active={location.pathname === '/properties'} />
                 <SidebarItem to="/people" icon={<Users size={22} />} label="Personas" active={location.pathname === '/people'} />
                 <SidebarItem to="/contracts" icon={<FileText size={22} />} label="Contratos" active={location.pathname === '/contracts'} />
+                <SidebarItem to="/billing" icon={<Receipt size={22} />} label="Liquidaciones" active={location.pathname === '/billing'} />
                 <SidebarItem to="/whatsapp" icon={<MessageSquare size={22} />} label="WhatsApp" active={location.pathname === '/whatsapp'} />
             </nav>
 
