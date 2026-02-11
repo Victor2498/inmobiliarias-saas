@@ -56,14 +56,16 @@ def process_user_login(user: UserModel, password: str, db: Session):
     # 2. Verificar Password
     if not hashing.verify_password(password, user.hashed_password):
         user.failed_attempts += 1
+        logger.warning(f"❌ Intento de login fallido para: {user.email} (Intento {user.failed_attempts}/5)")
         if user.failed_attempts >= 5:
             user.locked_until = datetime.utcnow() + timedelta(minutes=15)
-            logger.warning(f"🔒 Cuenta bloqueada por fuerza bruta: {user.email}")
+            logger.critical(f"🔒 BLOQUEO DE CUENTA activado por fuerza bruta: {user.email} desde IP (Rate Limit Activo)")
         db.commit()
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
     # 3. Verificar Verificación de Email (excepto SuperAdmin)
     if not user.email_verified and user.role != "SUPERADMIN" and not user.is_system_account:
+        logger.info(f"🚫 Intento de login en cuenta no verificada: {user.email}")
         raise HTTPException(status_code=403, detail="Email no verificado. Por favor, revise su casilla de correo.")
 
     if not user.is_active:
@@ -73,6 +75,7 @@ def process_user_login(user: UserModel, password: str, db: Session):
     user.failed_attempts = 0
     user.locked_until = None
     db.commit()
+    logger.info(f"✅ Login exitoso: {user.email} (Rol: {user.role})")
 
     access_token = tokens.create_access_token(
         subject=user.email,

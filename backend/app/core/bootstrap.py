@@ -31,12 +31,12 @@ def bootstrap_system():
             db.refresh(master_tenant)
 
         # 2. Asegurar SuperAdmin
-        email = "superadmin@inmonea.com"
+        email = settings.INITIAL_SUPERADMIN_EMAIL
         username = "superadmin"
         
         admin_user = db.query(UserModel).filter(UserModel.email == email).first()
         if not admin_user:
-            logger.info(f"👤 Creando SuperAdmin: {email} (Bootstrap)...")
+            logger.info(f"👤 Creando SuperAdmin Enterprise: {email} (Bootstrap)...")
             admin_user = UserModel(
                 email=email,
                 username=username,
@@ -52,7 +52,7 @@ def bootstrap_system():
             )
             db.add(admin_user)
             db.commit()
-            logger.info("✅ SuperAdmin creado con éxito.")
+            logger.info("✅ SuperAdmin Enterprise creado con éxito.")
         else:
             # Asegurar que tenga los flags correctos si ya existe
             if not admin_user.is_system_account:

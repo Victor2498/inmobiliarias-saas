@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # Reducido segun SPEC
+    INITIAL_SUPERADMIN_EMAIL: str = os.getenv("INITIAL_SUPERADMIN_EMAIL", "alfredsistemas85@gmail.com")
     INITIAL_SUPERADMIN_PASSWORD: str = os.getenv("INITIAL_SUPERADMIN_PASSWORD", "xEnEizE@2885")
     
     # Database
