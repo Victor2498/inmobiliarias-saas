@@ -29,9 +29,9 @@ const Sidebar: React.FC = () => {
 
     return (
         <div className="w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-4 text-slate-300 transition-colors duration-500">
-            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-10 px-4">Inmonea</div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-10 px-4 flex-shrink-0">Inmonea</div>
 
-            <nav className="flex-1 space-y-2">
+            <nav className="flex-1 space-y-2 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                 <SidebarItem to="/dashboard" icon={<LayoutDashboard size={22} />} label="Dashboard" active={location.pathname === '/dashboard'} />
 
                 {user?.role === 'SUPERADMIN' && (

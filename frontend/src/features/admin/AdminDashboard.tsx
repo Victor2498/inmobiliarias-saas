@@ -15,6 +15,7 @@ interface Tenant {
 
 const AdminDashboard: React.FC = () => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
 
     // Form state
