@@ -1,4 +1,5 @@
 import logging
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.infrastructure.persistence.models import UserModel, TenantModel
@@ -34,7 +35,10 @@ def bootstrap_system():
         email = settings.INITIAL_SUPERADMIN_EMAIL
         username = "superadmin"
         
-        admin_user = db.query(UserModel).filter(UserModel.email == email).first()
+        # Verificar por email O username para evitar UniqueViolation
+        admin_user = db.query(UserModel).filter(
+            or_(UserModel.email == email, UserModel.username == username)
+        ).first()
         if not admin_user:
             logger.info(f"👤 Creando SuperAdmin Enterprise: {email} (Bootstrap)...")
             admin_user = UserModel(
