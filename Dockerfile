@@ -1,15 +1,16 @@
 # Etapa 1: Build del Frontend (Optimizado para poca RAM)
-FROM node:20-slim AS frontend-builder
+FROM node:18-slim AS frontend-builder
 WORKDIR /build-frontend
 
-# Configuración para evitar saturar la memoria
-ENV NODE_OPTIONS="--max-old-space-size=1024"
+# Limitar memoria de Node drásticamente
+ENV NODE_OPTIONS="--max-old-space-size=450"
 
 COPY frontend/package*.json ./
-RUN npm ci --no-audit --no-fund
+# Instalación silenciosa
+RUN npm install --no-audit --no-fund --loglevel error
 
 COPY frontend/ ./
-# Ejecutamos vite directamente para saltar chequeos de tipos (tsc) que consumen mucha RAM
+# COMPILAR SIN TYPECHECK (Esto evita que el proceso muera por falta de RAM)
 RUN ./node_modules/.bin/vite build
 
 # Etapa 2: Runtime del Backend
