@@ -13,13 +13,25 @@ class AIAgentService:
         Disenado para ser ejecutado en BackgroundTasks.
         """
         try:
-            # 1. Marcar como procesamiento en curso
+            # 1. Recuperar mensaje y validar plan
+            from app.infrastructure.persistence.models import TenantModel
+            
             message = db.query(WhatsAppMessageModel).filter(WhatsAppMessageModel.id == message_id).first()
             if not message:
                 logger.error(f"Mensaje {message_id} no encontrado para procesamiento de IA")
                 return
 
-            # 2. Llamada a OpenAI (Desacoplado)
+            tenant = db.query(TenantModel).filter(TenantModel.id == message.tenant_id).first()
+            if not tenant or tenant.plan not in ["basic", "premium"]:
+                logger.warning(f"Procesamiento IA cancelado: Tenant {message.tenant_id} no tiene plan activo (Plan: {tenant.plan if tenant else 'N/A'})")
+                message.processed = True
+                message.intent = "PLAN_RESTRICTED"
+                db.commit()
+                return
+
+            # 2. Marcar como procesamiento en curso (Opcional, ya capturado arriba)
+
+            # 3. Llamada a OpenAI (Desacoplado)
             intent = await OpenAIService.detect_intent(content)
             
             # 3. Actualizar con resultado

@@ -6,7 +6,11 @@ from app.core.config import settings
 
 class TenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        excluded = ["/", "/docs", "/openapi.json", "/api/v1/auth", "/api/v1/tenants/register", "/assets"]
+        excluded = [
+            "/", "/docs", "/openapi.json", "/api/v1/auth", 
+            "/api/v1/tenants/register", "/assets",
+            "/api/v1/payments/webhook", "/api/v1/webhooks/evolution"
+        ]
         if any(request.url.path.startswith(p) for p in excluded):
             return await call_next(request)
             

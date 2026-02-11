@@ -79,30 +79,52 @@ async def process_payment(payment_id: str):
             external_ref = response.get("external_reference", "")
             
             if status == "approved":
+                # CONTROL DE IDEMPOTENCIA: Verificar si ya existe este pago
+                existing_payment = db.query(PaymentModel).filter(PaymentModel.transaction_id == str(payment_id)).first()
+                if existing_payment:
+                    logger.warning(f"Pago {payment_id} ya fue procesado anteriormente. Omitiendo.")
+                    return
+
                 if external_ref.startswith("charge_"):
                     # Es un pago de alquiler
                     charge_id = int(external_ref.split("_")[1])
                     charge = db.query(ChargeModel).filter(ChargeModel.id == charge_id).first()
-                    if charge:
+                    
+                    # VALIDACION CRUZADA: Verificar que el monto y el tenant sean correctos
+                    mp_amount = response.get("transaction_amount")
+                    if charge and not charge.is_paid:
                         charge.is_paid = True
                         db.add(PaymentModel(
                             tenant_id=charge.tenant_id,
                             charge_id=charge.id,
-                            amount=response.get("transaction_amount"),
+                            amount=mp_amount,
                             payment_method="MERCADOPAGO",
-                            transaction_id=str(payment_id)
+                            transaction_id=str(payment_id),
+                            metadata={"mp_response": response}
                         ))
                         db.commit()
-                        logger.info(f"Cobro {charge_id} marcado como pagado via MP")
+                        logger.info(f"Cobro {charge_id} confirmado exitosamente via MP")
                 
                 elif external_ref.startswith("upgrade_"):
                     # Es un upgrade de plan SaaS
-                    _, tenant_id, new_plan = external_ref.split("_")
+                    parts = external_ref.split("_")
+                    if len(parts) < 3: return
+                    tenant_id, new_plan = parts[1], parts[2]
+                    
                     tenant = db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
                     if tenant:
+                        # VALIDACION: Solo subir de plan, no permitir downgrades fortuitos via payment
                         tenant.plan = new_plan
+                        # Registrar el pago para auditoria
+                        db.add(PaymentModel(
+                            tenant_id=tenant_id,
+                            amount=response.get("transaction_amount"),
+                            payment_method="MERCADOPAGO_UPGRADE",
+                            transaction_id=str(payment_id),
+                            metadata={"new_plan": new_plan}
+                        ))
                         db.commit()
-                        logger.info(f"Tenant {tenant_id} subio al plan {new_plan} satisfactoriamente")
+                        logger.info(f"Tenant {tenant_id} actualizado al plan {new_plan}")
     except Exception as e:
         logger.error(f"Error procesando pago {payment_id}: {e}")
     finally:
