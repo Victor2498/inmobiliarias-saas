@@ -1,12 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.infrastructure.persistence.business_models import ContractModel
-from app.infrastructure.persistence.repository import BaseRepository
-from app.api.deps import get_current_user, RoleChecker, PlanChecker
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from app.infrastructure.persistence.business_models import ContractModel, ChargeModel
 
 router = APIRouter()
 
@@ -26,6 +19,17 @@ class ContractCreate(ContractBase):
 class ContractResponse(ContractBase):
     id: int
     tenant_id: str
+
+    class Config:
+        from_attributes = True
+
+class ChargeResponse(BaseModel):
+    id: int
+    description: str
+    amount: float
+    due_date: datetime
+    is_paid: bool
+    contract_id: int
 
     class Config:
         from_attributes = True
@@ -51,6 +55,12 @@ async def generate_charges(month: int, year: int, db: Session = Depends(get_db),
     service = ContractAutomationService(db)
     count = service.generate_monthly_charges(month, year)
     return {"message": f"Se generaron {count} cargos exitosamente"}
+
+@router.get("/charges", response_model=List[ChargeResponse])
+def list_charges(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    """Lista todos los cargos (liquidaciones) para el tenant actual"""
+    repo = BaseRepository(ChargeModel, db)
+    return repo.list()
 
 @router.get("/{id}/preview-adjustment")
 async def preview_adjustment(id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user), _ = Depends(PlanChecker(["basic", "premium"]))):

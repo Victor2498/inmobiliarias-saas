@@ -42,43 +42,48 @@ const ChargeList: React.FC = () => {
             </header>
 
             <div className="grid grid-cols-1 gap-4">
-                {charges.map((charge) => (
-                    <div key={charge.id} className="bg-slate-900 border border-slate-800 p-6 rounded-[2rem] flex items-center justify-between hover:border-blue-500/50 transition-all shadow-lg hover:shadow-blue-500/5 group">
-                        <div className="flex items-center space-x-6">
-                            <div className={`p-4 rounded-2xl ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                <Receipt size={28} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{charge.description}</h3>
-                                <div className="flex items-center space-x-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                    <span className="flex items-center"><Calendar size={14} className="mr-2" /> Vence: {new Date(charge.due_date).toLocaleDateString()}</span>
-                                    <span className="flex items-center"><CreditCard size={14} className="mr-2" /> Contrato #{charge.contract_id}</span>
+                {charges.map((charge) => {
+                    const amount = charge.amount || 0;
+                    const dueDate = charge.due_date ? new Date(charge.due_date) : new Date();
+
+                    return (
+                        <div key={charge.id} className="bg-slate-900 border border-slate-800 p-6 rounded-[2rem] flex items-center justify-between hover:border-blue-500/50 transition-all shadow-lg hover:shadow-blue-500/5 group">
+                            <div className="flex items-center space-x-6">
+                                <div className={`p-4 rounded-2xl ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                    <Receipt size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{charge.description || 'Cargo sin descripción'}</h3>
+                                    <div className="flex items-center space-x-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                        <span className="flex items-center"><Calendar size={14} className="mr-2" /> Vence: {dueDate.toLocaleDateString()}</span>
+                                        <span className="flex items-center"><CreditCard size={14} className="mr-2" /> Contrato #{charge.contract_id || '?'}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="flex items-center space-x-8">
-                            <div className="text-right">
-                                <div className="text-2xl font-black text-white mb-2">
-                                    ${charge.amount.toLocaleString()}
+                            <div className="flex items-center space-x-8">
+                                <div className="text-right">
+                                    <div className="text-2xl font-black text-white mb-2">
+                                        ${amount.toLocaleString()}
+                                    </div>
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500 animate-pulse'}`}>
+                                        {charge.is_paid ? 'Pagado' : 'Pendiente'}
+                                    </span>
                                 </div>
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500 animate-pulse'}`}>
-                                    {charge.is_paid ? 'Pagado' : 'Pendiente'}
-                                </span>
-                            </div>
 
-                            {!charge.is_paid && (
-                                <button
-                                    onClick={() => handlePay(charge.id)}
-                                    disabled={payingId === charge.id}
-                                    className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform hover:scale-105 active:scale-95"
-                                >
-                                    {payingId === charge.id ? 'Cargando...' : 'Pagar'}
-                                </button>
-                            )}
+                                {!charge.is_paid && (
+                                    <button
+                                        onClick={() => handlePay(charge.id)}
+                                        disabled={payingId === charge.id}
+                                        className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform hover:scale-105 active:scale-95"
+                                    >
+                                        {payingId === charge.id ? 'Cargando...' : 'Pagar'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {charges.length === 0 && !loading && (
                     <div className="text-slate-500 text-center py-32 bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-800 flex flex-col items-center">
