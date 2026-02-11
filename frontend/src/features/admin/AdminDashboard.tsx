@@ -15,7 +15,6 @@ interface Tenant {
 
 const AdminDashboard: React.FC = () => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
 
     // Form state
@@ -32,7 +31,7 @@ const AdminDashboard: React.FC = () => {
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
+            // Loading handled by layout or local state if needed
         }
     };
 
@@ -90,11 +89,11 @@ const AdminDashboard: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 p-6">
-            <header className="flex justify-between items-center">
+        <div className="space-y-8">
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Gestión Multi-tenant</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Panel de control del SuperAdministrador</p>
+                    <h1 className="text-2xl font-bold">Gestión de Inmobiliarias</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Alta, baja y control de acceso multi-tenant.</p>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
@@ -103,7 +102,7 @@ const AdminDashboard: React.FC = () => {
                     <Plus className="w-5 h-5" />
                     <span>Alta Inmobiliaria</span>
                 </button>
-            </header>
+            </div>
 
             {/* Modal de Creación */}
             {showCreate && (

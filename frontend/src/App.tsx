@@ -10,7 +10,7 @@ import ChargeList from './features/billing/ChargeList';
 import SaaSPlans from './features/subscription/SaaSPlans';
 import LoginPage from './features/auth/LoginPage';
 import VerifyEmail from './features/auth/VerifyEmail';
-import AdminDashboard from './features/admin/AdminDashboard';
+import AdminLayout from './features/admin/AdminLayout';
 import { useTheme } from './context/ThemeContext';
 
 const App: React.FC = () => {
@@ -27,9 +27,9 @@ const App: React.FC = () => {
 
             {/* Rutas Protegidas */}
             <Route element={<AuthGuard />}>
+              <Route path="/admin" element={<AdminLayout />} />
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<div className="p-6 text-2xl font-bold">Bienvenido al Dashboard</div>} />
-                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/properties" element={<PropertyList />} />
                 <Route path="/whatsapp" element={<WhatsAppDashboard />} />
                 <Route path="/people" element={<PeopleList />} />

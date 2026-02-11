@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, JSON, Float, Integer
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, JSON, Float, Integer, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import datetime
@@ -16,6 +16,11 @@ class TenantModel(Base):
     plan = Column(String, default="lite") # lite, basic, premium
     whatsapp_enabled = Column(Boolean, default=False)
     preferences = Column(JSON, default={"theme": "light"})
+    
+    # Estados SuperAdmin 2.0
+    status = Column(String, default="pending") # pending, active, suspended, cancelled, morosa
+    last_billing_sync = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class WhatsAppInstanceModel(Base):
@@ -71,3 +76,25 @@ class PropertyModel(Base):
     address = Column(String)
     features = Column(JSON)
     status = Column(String, default="AVAILABLE")
+
+class AuditLogModel(Base):
+    __tablename__ = "audit_logs"
+    id = Column(String, primary_key=True, index=True)
+    actor_id = Column(Integer, ForeignKey("users.id"), index=True)
+    tenant_id = Column(String, ForeignKey("tenants.id"), index=True, nullable=True)
+    action = Column(String, index=True) # CAMBIO_PLAN, SUSPENSION, RESET_PASSWORD, etc.
+    details = Column(JSON) # Antes/Después o metadatos
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+class SubscriptionHistoryModel(Base):
+    __tablename__ = "subscription_history"
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String, ForeignKey("tenants.id"), index=True)
+    plan_id = Column(String)
+    amount = Column(Float)
+    currency = Column(String, default="ARS")
+    payment_status = Column(String) # paid, pending, failed
+    billing_cycle_start = Column(DateTime)
+    billing_cycle_end = Column(DateTime)
+    transaction_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
