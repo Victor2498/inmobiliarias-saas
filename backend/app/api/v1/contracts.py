@@ -30,6 +30,8 @@ class ContractResponse(ContractBase):
     class Config:
         from_attributes = True
 
+from app.application.services.contract_automation import ContractAutomationService
+
 @router.get("/", response_model=List[ContractResponse])
 def list_contracts(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     repo = BaseRepository(ContractModel, db)
@@ -38,4 +40,23 @@ def list_contracts(db: Session = Depends(get_db), current_user = Depends(get_cur
 @router.post("/", response_model=ContractResponse)
 def create_contract(contract_in: ContractCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
     repo = BaseRepository(ContractModel, db)
-    return repo.create(contract_in.dict())
+    # Inicializar current_rent con el monto base
+    data = contract_in.dict()
+    data["current_rent"] = data["monthly_rent"]
+    return repo.create(data)
+
+@router.post("/generate-monthly-charges")
+async def generate_charges(month: int, year: int, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN"]))):
+    """Genera cargos para todos los contratos del tenant logueado"""
+    service = ContractAutomationService(db)
+    count = service.generate_monthly_charges(month, year)
+    return {"message": f"Se generaron {count} cargos exitosamente"}
+
+@router.get("/{id}/preview-adjustment")
+async def preview_adjustment(id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    """Previsualiza el ajuste ILC para un contrato especifico"""
+    service = ContractAutomationService(db)
+    new_rent = await service.calculate_ilc_adjustment(id)
+    if new_rent is None:
+        raise HTTPException(status_code=404, detail="Contrato no encontrado")
+    return {"new_rent": new_rent}

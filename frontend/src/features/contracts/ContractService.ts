@@ -20,5 +20,15 @@ export const ContractService = {
     create: async (data: Contract) => {
         const response = await axiosInstance.post<Contract>('/contracts/', data);
         return response.data;
+    },
+    generateMonthlyCharges: async (month: number, year: number) => {
+        const response = await axiosInstance.post('/contracts/generate-monthly-charges', null, {
+            params: { month, year }
+        });
+        return response.data;
+    },
+    previewAdjustment: async (id: number) => {
+        const response = await axiosInstance.get<{ new_rent: number }>(`/contracts/${id}/preview-adjustment`);
+        return response.data;
     }
 };

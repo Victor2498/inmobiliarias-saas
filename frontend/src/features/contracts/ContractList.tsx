@@ -5,6 +5,11 @@ import { FileText, Calendar, Clock, DollarSign } from 'lucide-react';
 const ContractList: React.FC = () => {
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false);
+
+    // Default to current month/year
+    const [targetMonth, setTargetMonth] = useState(new Date().getMonth() + 1);
+    const [targetYear, setTargetYear] = useState(new Date().getFullYear());
 
     useEffect(() => {
         loadContracts();
@@ -21,9 +26,50 @@ const ContractList: React.FC = () => {
         }
     };
 
+    const handleGenerateCharges = async () => {
+        setGenerating(true);
+        try {
+            const res = await ContractService.generateMonthlyCharges(targetMonth, targetYear);
+            alert(res.message);
+        } catch (error) {
+            alert("Error al generar liquidaciones");
+        } finally {
+            setGenerating(false);
+        }
+    };
+
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-white mb-6">Contratos de Alquiler</h1>
+        <div className="p-6 space-y-8">
+            <header className="flex justify-between items-center">
+                <h1 className="text-3xl font-black text-white">Contratos de Alquiler</h1>
+
+                <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex items-center space-x-4 shadow-xl">
+                    <div className="flex items-center space-x-2 px-3">
+                        <select
+                            className="bg-transparent text-white font-bold outline-none cursor-pointer text-sm"
+                            value={targetMonth}
+                            onChange={(e) => setTargetMonth(parseInt(e.target.value))}
+                        >
+                            {[...Array(12)].map((_, i) => (
+                                <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('es', { month: 'long' })}</option>
+                            ))}
+                        </select>
+                        <input
+                            type="number"
+                            className="w-20 bg-transparent text-white font-bold outline-none text-sm"
+                            value={targetYear}
+                            onChange={(e) => setTargetYear(parseInt(e.target.value))}
+                        />
+                    </div>
+                    <button
+                        onClick={handleGenerateCharges}
+                        disabled={generating}
+                        className={`px-6 py-2.5 rounded-xl font-bold transition-all ${generating ? 'bg-slate-800 text-slate-500' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'}`}
+                    >
+                        {generating ? 'Procesando...' : 'Liquidación Mensual'}
+                    </button>
+                </div>
+            </header>
 
             <div className="space-y-4">
                 {contracts.map((contract) => (
