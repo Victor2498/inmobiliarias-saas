@@ -19,7 +19,7 @@ from app.infrastructure.persistence.whatsapp_models import WhatsAppSessionModel,
 config = context.config
 
 # Sobrescribir la URL de la base de datos con la de settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.get_database_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

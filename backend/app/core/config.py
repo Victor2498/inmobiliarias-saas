@@ -61,10 +61,13 @@ class Settings(BaseSettings):
     
     # Integraciones
     EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
-    EVOLUTION_API_TOKEN: str = os.getenv("EVOLUTION_API_TOKEN")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+    EVOLUTION_API_TOKEN: str | None = os.getenv("EVOLUTION_API_TOKEN")
+    OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
 
-    class Config:
-        case_sensitive = True
+    model_config = {
+        "case_sensitive": True,
+        "env_file": ".env",
+        "extra": "ignore"
+    }
 
 settings = Settings()

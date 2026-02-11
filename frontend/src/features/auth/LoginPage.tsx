@@ -8,7 +8,8 @@ import { AuthService } from './AuthService';
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
-    const [email, setEmail] = useState('');
+    const [loginType, setLoginType] = useState<'tenant' | 'admin'>('tenant');
+    const [identifier, setIdentifier] = useState(''); // email o nombre_inmobiliaria
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,65 +20,89 @@ const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            const data = await AuthService.login(email, password);
+            let data;
+            if (loginType === 'tenant') {
+                data = await AuthService.loginTenant(identifier, password);
+            } else {
+                data = await AuthService.loginAdmin(identifier, password);
+            }
             setAuth(data.access_token, data.user);
             navigate('/dashboard');
         } catch (err: any) {
             console.error(err);
-            setError('Credenciales inválidas o error de conexión.');
+            setError(err.response?.data?.detail || 'Credenciales inválidas o error de conexión.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 relative overflow-hidden">
-            {/* Elementos decorativos de fondo */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/20 blur-[120px] rounded-full" />
+        <div className="min-h-screen bg-slate-950 dark:bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500">
+            {/* Background elements */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[120px] rounded-full" />
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="w-full max-w-md"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full max-w-md z-10"
             >
-                <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl relative">
-                    <div className="flex justify-center mb-6">
-                        <div className="bg-blue-600 p-4 rounded-2xl shadow-lg shadow-blue-500/30">
+                <div className="bg-white/5 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/10 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-2xl relative">
+                    <div className="flex justify-center mb-8">
+                        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl shadow-xl shadow-blue-500/20">
                             <Home className="text-white w-8 h-8" />
                         </div>
                     </div>
 
-                    <h1 className="text-3xl font-bold text-white text-center mb-2">Bienvenido</h1>
-                    <p className="text-slate-400 text-center mb-8">Ingresa a tu portal inmobiliario</p>
+                    <h1 className="text-3xl font-bold text-white text-center mb-2">Inmonea</h1>
+                    <p className="text-slate-400 text-center mb-8">Gestión Inmobiliaria Inteligente</p>
+
+                    {/* Login Type Switcher */}
+                    <div className="flex p-1 bg-slate-900/50 rounded-2xl mb-8 border border-white/5">
+                        <button
+                            onClick={() => setLoginType('tenant')}
+                            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${loginType === 'tenant' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Inmobiliaria
+                        </button>
+                        <button
+                            onClick={() => setLoginType('admin')}
+                            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${loginType === 'admin' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Administrador
+                        </button>
+                    </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2 ml-1">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                            <label className="block text-sm font-medium text-slate-300 mb-2 ml-1">
+                                {loginType === 'tenant' ? 'Nombre de Inmobiliaria' : 'Correo Electrónico'}
+                            </label>
+                            <div className="relative group">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+                                    {loginType === 'tenant' ? <Home className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
+                                </div>
                                 <input
-                                    type="email"
+                                    type={loginType === 'tenant' ? 'text' : 'email'}
                                     required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3 pl-10 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                                    placeholder="correo@ejemplo.com"
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
+                                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
+                                    placeholder={loginType === 'tenant' ? 'Ej: Inmobiliaria Central' : 'correo@admin.com'}
                                 />
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-2 ml-1">Contraseña</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors w-5 h-5" />
                                 <input
                                     type="password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3 pl-10 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -87,7 +112,7 @@ const LoginPage: React.FC = () => {
                             <motion.div
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl text-center"
+                                className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs p-4 rounded-2xl text-center"
                             >
                                 {error}
                             </motion.div>
@@ -96,14 +121,14 @@ const LoginPage: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/25"
+                            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 transition-all shadow-xl shadow-blue-500/20 active:scale-[0.98]"
                         >
                             {loading ? (
                                 <Loader2 className="animate-spin w-5 h-5" />
                             ) : (
                                 <>
                                     <LogIn className="w-5 h-5" />
-                                    <span>Iniciar Sesión</span>
+                                    <span>Entrar al Sistema</span>
                                 </>
                             )}
                         </button>

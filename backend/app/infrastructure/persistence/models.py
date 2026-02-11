@@ -8,10 +8,12 @@ Base = declarative_base()
 class TenantModel(Base):
     __tablename__ = "tenants"
     id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    slug = Column(String, unique=True, index=True)
+    name = Column(String, nullable=False, unique=True, index=True) # nombre_inmobiliaria
+    email = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
     plan_id = Column(String, default="lite")
     is_active = Column(Boolean, default=True)
+    preferences = Column(JSON, default={"theme": "light"})
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class UserModel(Base):

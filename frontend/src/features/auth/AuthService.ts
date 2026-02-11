@@ -7,19 +7,26 @@ export interface LoginResponse {
         email: string;
         role: string;
         tenant_id: string;
+        name?: string;
+        preferences?: {
+            theme: 'light' | 'dark';
+        };
     };
 }
 
 export const AuthService = {
-    login: async (email: string, password: string): Promise<LoginResponse> => {
-        const formData = new FormData();
-        formData.append('username', email); // OAuth2PasswordRequestForm espera 'username'
-        formData.append('password', password);
+    loginTenant: async (nombre_inmobiliaria: string, password: string): Promise<LoginResponse> => {
+        const response = await axiosInstance.post<LoginResponse>('/auth/login/tenant', {
+            nombre_inmobiliaria,
+            password,
+        });
+        return response.data;
+    },
 
-        const response = await axiosInstance.post<LoginResponse>('/auth/login', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+    loginAdmin: async (email: string, password: string): Promise<LoginResponse> => {
+        const response = await axiosInstance.post<LoginResponse>('/auth/login/admin', {
+            email,
+            password,
         });
         return response.data;
     },

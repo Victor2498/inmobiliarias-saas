@@ -6,31 +6,39 @@ import AuthGuard from './features/auth/AuthGuard';
 import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
 import ContractList from './features/contracts/ContractList';
-
 import LoginPage from './features/auth/LoginPage';
+import AdminDashboard from './features/admin/AdminDashboard';
+import { useTheme } from './context/ThemeContext';
 
 const App: React.FC = () => {
+  const { theme } = useTheme();
+
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Ruta de Login */}
-        <Route path="/login" element={<LoginPage />} />
+    <div className={theme}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-500">
+        <BrowserRouter>
+          <Routes>
+            {/* Ruta de Login */}
+            <Route path="/login" element={<LoginPage />} />
 
-        {/* Rutas Protegidas */}
-        <Route element={<AuthGuard />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<div className="p-6 text-white text-2xl font-bold">Bienvenido al Dashboard</div>} />
-            <Route path="/properties" element={<PropertyList />} />
-            <Route path="/whatsapp" element={<WhatsAppDashboard />} />
-            <Route path="/people" element={<PeopleList />} />
-            <Route path="/contracts" element={<ContractList />} />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Route>
-        </Route>
+            {/* Rutas Protegidas */}
+            <Route element={<AuthGuard />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<div className="p-6 text-2xl font-bold">Bienvenido al Dashboard</div>} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/properties" element={<PropertyList />} />
+                <Route path="/whatsapp" element={<WhatsAppDashboard />} />
+                <Route path="/people" element={<PeopleList />} />
+                <Route path="/contracts" element={<ContractList />} />
+                <Route path="/" element={<Navigate to="/dashboard" />} />
+              </Route>
+            </Route>
 
-        <Route path="*" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </BrowserRouter>
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </div>
   );
 };
 
