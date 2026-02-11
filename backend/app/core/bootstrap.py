@@ -58,13 +58,19 @@ def bootstrap_system():
             db.commit()
             logger.info("✅ SuperAdmin Enterprise creado con éxito.")
         else:
-            # Asegurar que tenga los flags correctos si ya existe
-            if not admin_user.is_system_account:
-                admin_user.is_system_account = True
-                admin_user.cannot_be_deleted = True
-                admin_user.username = username
-                db.commit()
-                logger.info("⚠️ Flags de SuperAdmin actualizados.")
+            # AUTO-REPARACIÓN CRÍTICA: Asegurar que el SuperAdmin coincida EXACTAMENTE con el SPEC
+            logger.info(f"🔧 Sincronizando credenciales de SuperAdmin: {email}")
+            admin_user.email = email
+            admin_user.username = username
+            admin_user.hashed_password = get_password_hash(settings.INITIAL_SUPERADMIN_PASSWORD)
+            admin_user.role = "SUPERADMIN"
+            admin_user.tenant_id = "master"
+            admin_user.is_system_account = True
+            admin_user.cannot_be_deleted = True
+            admin_user.email_verified = True
+            admin_user.is_active = True
+            db.commit()
+            logger.info("✅ SuperAdmin sincronizado y reparado con éxito.")
 
     except Exception as e:
         logger.error(f"❌ Error en bootstrap: {e}")
