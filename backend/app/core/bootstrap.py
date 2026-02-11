@@ -1,8 +1,11 @@
 import logging
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from app.core.database import SessionLocal
-from app.infrastructure.persistence.models import UserModel, TenantModel
+from app.core.database import SessionLocal, engine
+from app.infrastructure.persistence.models import Base, UserModel, TenantModel
+# Importar otros modelos para que Base.metadata los registre
+import app.infrastructure.persistence.business_models
+import app.infrastructure.persistence.whatsapp_models
 from app.infrastructure.security.hashing import get_password_hash
 from app.core.config import settings
 
@@ -10,9 +13,15 @@ logger = logging.getLogger(__name__)
 
 def bootstrap_system():
     """
-    Crea el SuperAdmin y el Tenant maestro si no existen.
-    Basado en el SPEC de Seguridad Avanzada.
+    Sincroniza el esquema y asegura datos maestros (SuperAdmin/Tenant).
     """
+    logger.info("🛠️ Iniciando sincronización de base de datos...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Esquema de base de datos sincronizado.")
+    except Exception as e:
+        logger.error(f"❌ Error al sincronizar esquema: {e}")
+
     db = SessionLocal()
     try:
         # 1. Asegurar Tenant Maestro
