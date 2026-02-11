@@ -30,10 +30,13 @@ class PersonResponse(PersonBase):
 @router.get("/", response_model=List[PersonResponse])
 def list_people(type: Optional[str] = None, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     repo = BaseRepository(PersonModel, db)
-    query = db.query(PersonModel).filter(PersonModel.tenant_id == current_user.tenant_id)
+    # El repo.list() ya filtra por tenant_id internamente
     if type:
-        query = query.filter(PersonModel.type == type)
-    return query.all()
+        return db.query(PersonModel).filter(
+            PersonModel.tenant_id == current_user.tenant_id,
+            PersonModel.type == type
+        ).all()
+    return repo.list()
 
 @router.post("/", response_model=PersonResponse)
 def create_person(person_in: PersonCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):

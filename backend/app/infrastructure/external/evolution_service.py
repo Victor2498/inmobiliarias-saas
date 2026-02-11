@@ -16,7 +16,7 @@ class EvolutionService:
         url = f"{self.base_url}/instance/create"
         payload = {
             "instanceName": instance_name,
-            "token": settings.EVOLUTION_API_TOKEN, # O un token específico
+            "token": settings.EVOLUTION_API_TOKEN, # O un token especifico
             "qrcode": True
         }
         async with httpx.AsyncClient() as client:

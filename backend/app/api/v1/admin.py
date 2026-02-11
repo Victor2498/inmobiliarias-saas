@@ -7,10 +7,13 @@ from app.api.v1.schemas import TenantCreate, TenantUpdate
 from app.infrastructure.security import hashing
 import uuid
 
+from app.api.deps import RoleChecker
+
 router = APIRouter()
+admin_only = RoleChecker(["SUPERADMIN"])
 
 @router.post("/", response_model=Dict[str, Any])
-def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
+def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db), _ = Depends(admin_only)):
     # Verificar si el nombre ya existe
     existing = db.query(TenantModel).filter(TenantModel.name == tenant.name).first()
     if existing:
@@ -29,15 +32,15 @@ def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db)):
     db.add(new_tenant)
     db.commit()
     db.refresh(new_tenant)
-    return {"message": "Inmobiliaria creada con éxito", "id": new_tenant.id}
+    return {"message": "Inmobiliaria creada con exito", "id": new_tenant.id}
 
 @router.get("/", response_model=List[Dict[str, Any]])
-def list_tenants(db: Session = Depends(get_db)):
+def list_tenants(db: Session = Depends(get_db), _ = Depends(admin_only)):
     tenants = db.query(TenantModel).all()
     return tenants
 
 @router.patch("/{tenant_id}")
-def update_tenant(tenant_id: str, update_data: TenantUpdate, db: Session = Depends(get_db)):
+def update_tenant(tenant_id: str, update_data: TenantUpdate, db: Session = Depends(get_db), _ = Depends(admin_only)):
     tenant = db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Inmobiliaria no encontrada")

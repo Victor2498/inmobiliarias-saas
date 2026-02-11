@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Seguridad
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 días
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 dias
     
     # Database
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
@@ -29,16 +29,16 @@ class Settings(BaseSettings):
         
         if env_url and env_url.strip():
             url = env_url.strip().strip('"').strip("'")
-            # Corrección de esquema
+            # Correccion de esquema
             url = url.replace("postgres://", "postgresql://")
-            # Limpieza de parámetros (?...) que rompen psycopg2
+            # Limpieza de parametros (?...) que rompen psycopg2
             if "?" in url:
                 url = url.split("?")[0]
         else:
-            # Fallback a construcción manual
+            # Fallback a construccion manual
             url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         
-        # Limpieza de parámetros (?...) que rompen psycopg2
+        # Limpieza de parametros (?...) que rompen psycopg2
         if "?" in url:
             url = url.split("?")[0]
             

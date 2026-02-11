@@ -18,7 +18,7 @@ def login_tenant(data: TenantLogin, db: Session = Depends(get_db)):
     if not tenant or not hashing.verify_password(data.password, tenant.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nombre de inmobiliaria o contraseña incorrectos",
+            detail="Nombre de inmobiliaria o contrasena incorrectos",
         )
     
     if not tenant.is_active:
@@ -49,7 +49,7 @@ def login_admin(data: UserLogin, db: Session = Depends(get_db)):
     if not user or not hashing.verify_password(data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
+            detail="Email o contrasena incorrectos",
         )
     
     if user.role != "SUPERADMIN":

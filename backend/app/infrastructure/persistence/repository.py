@@ -7,8 +7,8 @@ T = TypeVar("T", bound=Base)
 
 class BaseRepository(Generic[T]):
     """
-    Repositorio base que aplica filtrado por tenant_id automáticamente.
-    Garantiza que ningún tenant acceda a datos de otro.
+    Repositorio base que aplica filtrado por tenant_id automaticamente.
+    Garantiza que ningun tenant acceda a datos de otro.
     """
     def __init__(self, model: Type[T], db: Session):
         self.model = model
@@ -17,8 +17,8 @@ class BaseRepository(Generic[T]):
     def _get_tenant_filter(self):
         tenant_id = get_current_tenant_id()
         if not tenant_id:
-            # En producción, esto debería lanzar una excepción si no es una ruta pública
-            return True 
+            # Bloqueo total si no hay contexto de tenant
+            return False 
         return self.model.tenant_id == tenant_id
 
     def get(self, id: any) -> Optional[T]:

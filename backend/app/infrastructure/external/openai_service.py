@@ -7,8 +7,8 @@ class OpenAIService:
     @staticmethod
     async def detect_intent(message_text: str):
         prompt = f"""
-        Analiza el siguiente mensaje de un cliente de una inmobiliaria y detecta su intención.
-        Opciones de intención: 
+        Analiza el siguiente mensaje de un cliente de una inmobiliaria y detecta su intencion.
+        Opciones de intencion: 
         - ALQUILER: El cliente busca alquilar una propiedad.
         - COMPRA: El cliente busca comprar una propiedad.
         - TASACION: El cliente quiere saber el valor de su propiedad.
@@ -16,7 +16,7 @@ class OpenAIService:
         
         Mensaje: "{message_text}"
         
-        Responde solo con la palabra clave de la intención en MAYÚSCULAS.
+        Responde solo con la palabra clave de la intencion en MAYUSCULAS.
         """
         
         try:

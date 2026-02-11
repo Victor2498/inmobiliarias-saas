@@ -19,7 +19,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Importante: Asegurar que el contexto del tenant esté seteado para el usuario logueado
+    # Importante: Asegurar que el contexto del tenant este seteado para el usuario logueado
     if user.role != "SUPERADMIN":
         set_current_tenant_id(user.tenant_id)
         
@@ -33,6 +33,24 @@ class RoleChecker:
         if user.role not in self.allowed_roles and user.role != "SUPERADMIN":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="The user doesn't have enough privileges"
+                detail="El usuario no tiene suficientes privilegios"
+            )
+        return user
+
+class PlanChecker:
+    def __init__(self, required_plans: list):
+        self.required_plans = required_plans
+
+    def __call__(self, db: Session = Depends(get_db), user: UserModel = Depends(get_current_user)):
+        from app.infrastructure.persistence.models import TenantModel
+        tenant = db.query(TenantModel).filter(TenantModel.id == user.tenant_id).first()
+        
+        if not tenant:
+            raise HTTPException(status_code=404, detail="Inmobiliaria no encontrada")
+            
+        if tenant.plan not in self.required_plans and user.role != "SUPERADMIN":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail=f"Esta funcionalidad requiere un plan superior ({', '.join(self.required_plans)})"
             )
         return user

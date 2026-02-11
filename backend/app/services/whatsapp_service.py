@@ -26,7 +26,7 @@ class WhatsAppService:
             return response.json()
 
     async def get_qr_code(self, instance_name: str) -> Optional[str]:
-        """Obtiene el código QR de una instancia existente."""
+        """Obtiene el codigo QR de una instancia existente."""
         url = f"{self.base_url}/instance/connect/{instance_name}"
         
         async with httpx.AsyncClient() as client:
@@ -50,7 +50,7 @@ class WhatsAppService:
             return "ERROR"
 
     async def logout_instance(self, instance_name: str) -> bool:
-        """Cierra la sesión de WhatsApp en la instancia."""
+        """Cierra la sesion de WhatsApp en la instancia."""
         url = f"{self.base_url}/instance/logout/{instance_name}"
         
         async with httpx.AsyncClient() as client:
