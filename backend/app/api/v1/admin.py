@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.core.database import get_db
 from app.infrastructure.persistence.models import TenantModel
-from app.api.v1.schemas import TenantCreate, TenantUpdate
+from app.api.v1.schemas import TenantCreate, TenantUpdate, TenantResponse
 from app.infrastructure.security import hashing
 import uuid
 
@@ -34,10 +34,9 @@ def create_tenant(tenant: TenantCreate, db: Session = Depends(get_db), _ = Depen
     db.refresh(new_tenant)
     return {"message": "Inmobiliaria creada con exito", "id": new_tenant.id}
 
-@router.get("/", response_model=List[Dict[str, Any]])
+@router.get("/", response_model=List[TenantResponse])
 def list_tenants(db: Session = Depends(get_db), _ = Depends(admin_only)):
-    tenants = db.query(TenantModel).all()
-    return tenants
+    return db.query(TenantModel).all()
 
 @router.patch("/{tenant_id}")
 def update_tenant(tenant_id: str, update_data: TenantUpdate, db: Session = Depends(get_db), _ = Depends(admin_only)):
