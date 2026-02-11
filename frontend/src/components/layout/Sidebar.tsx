@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Home, FileText, MessageSquare, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Home, FileText, MessageSquare, Settings, LogOut, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Link, useLocation } from 'react-router-dom';
 
