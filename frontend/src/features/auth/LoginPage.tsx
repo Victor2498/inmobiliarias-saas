@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, Loader2, Home } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader2, Home, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AuthService } from './AuthService';
@@ -9,8 +9,9 @@ const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
     const [loginType, setLoginType] = useState<'tenant' | 'admin'>('tenant');
-    const [identifier, setIdentifier] = useState(''); // email o nombre_inmobiliaria
+    const [identifier, setIdentifier] = useState(''); // email o username
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -76,7 +77,7 @@ const LoginPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-2 ml-1">
-                                {loginType === 'tenant' ? 'Nombre de Inmobiliaria' : 'Correo Electrónico'}
+                                {loginType === 'tenant' ? 'Email o Usuario' : 'Correo / Username'}
                             </label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors">
@@ -88,7 +89,7 @@ const LoginPage: React.FC = () => {
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
-                                    placeholder={loginType === 'tenant' ? 'Ej: Inmobiliaria Central' : 'correo@admin.com'}
+                                    placeholder={loginType === 'tenant' ? 'Email o nombre de usuario' : 'superadmin o correo@admin.com'}
                                 />
                             </div>
                         </div>
@@ -98,13 +99,21 @@ const LoginPage: React.FC = () => {
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors w-5 h-5" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
+                                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all"
                                     placeholder="••••••••"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-500 transition-colors"
+                                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 

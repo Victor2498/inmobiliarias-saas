@@ -7,7 +7,7 @@ class TenantLogin(BaseModel):
     password: str
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    identifier: str
     password: str
 
 class Token(BaseModel):

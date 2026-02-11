@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.infrastructure.persistence.models import TenantModel, UserModel
-from app.infrastructure.security import hashing
+from app.infrastructure.security import hashing, tokens
+import logging
+logger = logging.getLogger(__name__)
 from pydantic import BaseModel, EmailStr
 import uuid
 
@@ -43,5 +45,17 @@ def register_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
     )
     db.add(new_admin)
     
+    # 4. Generar Token de Verificación
+    from app.application.services.verification_service import VerificationService
+    token = VerificationService.generate_token(new_admin.id, db)
+    
+    # 5. Log del enlace (En producción se enviaría por email)
+    logger.info(f"🔑 Token de verificación generado para {tenant_in.admin_email}: {token}")
+    logger.info(f"🔗 Enlace: http://localhost:5173/verify?token={token}")
+    
     db.commit()
-    return {"message": "Inmobiliaria y administrador creados", "tenant_id": tenant_id}
+    return {
+        "message": "Inmobiliaria registrada. Por favor, verifique su email para activar la cuenta.",
+        "tenant_id": tenant_id,
+        "debug_token": token # Solo para facilitar pruebas en desarrollo
+    }

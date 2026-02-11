@@ -9,6 +9,7 @@ import ContractList from './features/contracts/ContractList';
 import ChargeList from './features/billing/ChargeList';
 import SaaSPlans from './features/subscription/SaaSPlans';
 import LoginPage from './features/auth/LoginPage';
+import VerifyEmail from './features/auth/VerifyEmail';
 import AdminDashboard from './features/admin/AdminDashboard';
 import { useTheme } from './context/ThemeContext';
 
@@ -20,8 +21,9 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-500">
         <BrowserRouter>
           <Routes>
-            {/* Ruta de Login */}
+            {/* Rutas Públicas */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/verify" element={<VerifyEmail />} />
 
             {/* Rutas Protegidas */}
             <Route element={<AuthGuard />}>

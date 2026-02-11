@@ -3,10 +3,11 @@ import { persist } from 'zustand/middleware';
 
 interface User {
     email: string;
-    tenant_id: string;
     role: string;
-    plan: string;
+    tenant_id?: string;
+    plan?: string;
     name?: string;
+    force_password_change?: boolean;
     preferences?: {
         theme: 'light' | 'dark';
     };

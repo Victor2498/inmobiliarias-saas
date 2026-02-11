@@ -23,11 +23,16 @@ export const AuthService = {
         return response.data;
     },
 
-    loginAdmin: async (email: string, password: string): Promise<LoginResponse> => {
+    loginAdmin: async (identifier: string, password: string): Promise<LoginResponse> => {
         const response = await axiosInstance.post('/auth/login/admin', {
-            email,
+            identifier,
             password
         });
+        return response.data;
+    },
+
+    verifyEmail: async (token: string): Promise<{ message: string }> => {
+        const response = await axiosInstance.get(`/auth/verify-email?token=${token}`);
         return response.data;
     }
 };
