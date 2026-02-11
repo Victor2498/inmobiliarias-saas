@@ -1,17 +1,17 @@
-# Etapa 1: Build del Frontend (Optimizado para poca RAM)
-FROM node:18-slim AS frontend-builder
+# Etapa 1: Build del Frontend (Máximo Ahorro RAM)
+FROM node:18-alpine AS frontend-builder
 WORKDIR /build-frontend
 
-# Limitar memoria de Node drásticamente
-ENV NODE_OPTIONS="--max-old-space-size=450"
+# Forzar límite de memoria ultra bajo
+ENV NODE_OPTIONS="--max-old-space-size=384"
 
 COPY frontend/package*.json ./
-# Instalación silenciosa
-RUN npm install --no-audit --no-fund --loglevel error
+RUN echo "--- DIAGNÓSTICO: Instalando dependencias ---" && \
+    npm ci --no-audit --no-fund --loglevel error
 
 COPY frontend/ ./
-# COMPILAR SIN TYPECHECK (Esto evita que el proceso muera por falta de RAM)
-RUN ./node_modules/.bin/vite build
+RUN echo "--- DIAGNÓSTICO: Compilando Frontend ---" && \
+    ./node_modules/.bin/vite build
 
 # Etapa 2: Runtime del Backend
 FROM python:3.11-slim
