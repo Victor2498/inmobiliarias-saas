@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
     EVOLUTION_API_TOKEN: str | None = os.getenv("EVOLUTION_API_TOKEN")
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
+    
+    # Mercado Pago
+    MP_ACCESS_TOKEN: str | None = os.getenv("MP_ACCESS_TOKEN")
+    MP_WEBHOOK_URL: str = os.getenv("MP_WEBHOOK_URL", "") # URL publica para recibir notificaciones
 
     model_config = {
         "case_sensitive": True,

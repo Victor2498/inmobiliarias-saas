@@ -13,5 +13,9 @@ export const ChargeService = {
     list: async () => {
         const response = await axiosInstance.get<Charge[]>('/contracts/charges');
         return response.data;
+    },
+    getPaymentPreference: async (chargeId: number) => {
+        const response = await axiosInstance.get<{ init_point: string }>(`/payments/preference/charge/${chargeId}`);
+        return response.data;
     }
 };

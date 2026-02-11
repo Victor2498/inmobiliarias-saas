@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware';
 
 interface User {
     email: string;
-    role: string;
     tenant_id: string;
+    role: string;
+    plan: string;
     name?: string;
     preferences?: {
         theme: 'light' | 'dark';

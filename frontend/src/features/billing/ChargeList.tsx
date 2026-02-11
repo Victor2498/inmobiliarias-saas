@@ -5,6 +5,7 @@ import { Receipt, Calendar, CreditCard, Filter } from 'lucide-react';
 const ChargeList: React.FC = () => {
     const [charges, setCharges] = useState<Charge[]>([]);
     const [loading, setLoading] = useState(true);
+    const [payingId, setPayingId] = useState<number | null>(null);
 
     useEffect(() => {
         loadCharges();
@@ -18,6 +19,18 @@ const ChargeList: React.FC = () => {
             console.error("Error loading charges", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePay = async (chargeId: number) => {
+        setPayingId(chargeId);
+        try {
+            const { init_point } = await ChargeService.getPaymentPreference(chargeId);
+            window.location.href = init_point;
+        } catch (error) {
+            alert("Error al iniciar el pago");
+        } finally {
+            setPayingId(null);
         }
     };
 
@@ -44,13 +57,25 @@ const ChargeList: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="text-right">
-                            <div className="text-2xl font-black text-white mb-2">
-                                ${charge.amount.toLocaleString()}
+                        <div className="flex items-center space-x-8">
+                            <div className="text-right">
+                                <div className="text-2xl font-black text-white mb-2">
+                                    ${charge.amount.toLocaleString()}
+                                </div>
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500 animate-pulse'}`}>
+                                    {charge.is_paid ? 'Pagado' : 'Pendiente'}
+                                </span>
                             </div>
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${charge.is_paid ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500 animate-pulse'}`}>
-                                {charge.is_paid ? 'Pagado' : 'Pendiente'}
-                            </span>
+
+                            {!charge.is_paid && (
+                                <button
+                                    onClick={() => handlePay(charge.id)}
+                                    disabled={payingId === charge.id}
+                                    className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform hover:scale-105 active:scale-95"
+                                >
+                                    {payingId === charge.id ? 'Cargando...' : 'Pagar'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}
