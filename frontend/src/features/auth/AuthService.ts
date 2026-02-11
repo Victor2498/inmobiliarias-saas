@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8000/api/v1';
+import axiosInstance from '../../api/axiosInstance';
 
 interface LoginResponse {
     access_token: string;
@@ -9,21 +7,25 @@ interface LoginResponse {
         email: string;
         role: string;
         tenant_id: string;
-        name: string;
-        plan: string;
-        whatsapp_enabled: boolean;
-        preferences: any;
     };
 }
 
 export const AuthService = {
-    loginTenant: async (data: any): Promise<LoginResponse> => {
-        const response = await axios.post(`${API_URL}/auth/login/tenant`, data);
+    // Unificamos el login ya que el backend usa la misma tabla de usuarios
+    login: async (email: string, password: string): Promise<LoginResponse> => {
+        const formData = new FormData();
+        formData.append('username', email);
+        formData.append('password', password);
+
+        const response = await axiosInstance.post('/auth/login', formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
         return response.data;
     },
 
-    loginAdmin: async (data: any): Promise<LoginResponse> => {
-        const response = await axios.post(`${API_URL}/auth/login/admin`, data);
-        return response.data;
-    }
+    // Mantenemos los nombres para no romper LoginPage pero apuntamos al mismo sitio
+    loginTenant: async (email: string, password: string) => AuthService.login(email, password),
+    loginAdmin: async (email: string, password: string) => AuthService.login(email, password)
 };
