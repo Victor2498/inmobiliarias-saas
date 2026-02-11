@@ -7,11 +7,11 @@ ENV NODE_OPTIONS="--max-old-space-size=384"
 
 COPY frontend/package*.json ./
 RUN echo "--- DIAGNÓSTICO: Instalando dependencias ---" && \
-    npm ci --no-audit --no-fund --loglevel error
+    npm install --no-audit --no-fund --loglevel error
 
 COPY frontend/ ./
 RUN echo "--- DIAGNÓSTICO: Compilando Frontend ---" && \
-    ./node_modules/.bin/vite build
+    npm run build
 
 # Etapa 2: Runtime del Backend
 FROM python:3.11-slim

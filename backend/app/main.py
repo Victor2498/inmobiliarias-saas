@@ -35,19 +35,17 @@ def create_app() -> FastAPI:
 
     # Servir archivos estáticos del frontend
     if os.path.exists("static"):
+        print("✅ Carpeta 'static' encontrada. Serviendo Frontend...")
         app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
         
         @app.get("/{full_path:path}")
         async def serve_spa(full_path: str):
-            # Si la ruta empieza con API_V1_STR, FastAPI ya la manejó arriba.
-            # Si no, servimos el index.html para que React Router tome el control.
-            
-            # Evitar colisión con archivos físicos en static (como favicon, etc)
             file_path = os.path.join("static", full_path)
             if os.path.isfile(file_path):
                 return FileResponse(file_path)
-                
             return FileResponse("static/index.html")
+    else:
+        print("⚠️ ADVERTENCIA: Carpeta 'static' NO encontrada. El frontend no se cargará.")
 
     @app.get("/health")
     async def health_check():
