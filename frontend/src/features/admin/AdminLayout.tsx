@@ -14,6 +14,7 @@ import {
 import AdminDashboard from './AdminDashboard';
 import AuditLogPanel from './AuditLogPanel';
 import BillingPanel from './BillingPanel';
+import WhatsAppPanel from './WhatsAppPanel';
 
 interface SidebarItemProps {
     icon: any;
@@ -53,6 +54,7 @@ const AdminLayout: React.FC = () => {
             case 'tenants': return <AdminDashboard />;
             case 'audit': return <AuditLogPanel />;
             case 'billing': return <BillingPanel />;
+            case 'whatsapp': return <WhatsAppPanel />;
             default: return <div className="p-8 text-center text-slate-400">Módulo {activeTab} en desarrollo.</div>;
         }
     };

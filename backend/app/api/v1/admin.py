@@ -73,3 +73,11 @@ def get_billing_history(
 ):
     from app.infrastructure.persistence.models import SubscriptionHistoryModel
     return db.query(SubscriptionHistoryModel).order_by(SubscriptionHistoryModel.created_at.desc()).limit(100).all()
+
+@router.get("/whatsapp/instances", response_model=List[Dict[str, Any]])
+def get_all_whatsapp_instances(
+    db: Session = Depends(get_db), 
+    _ = Depends(admin_only)
+):
+    from app.infrastructure.persistence.models import WhatsAppInstanceModel
+    return db.query(WhatsAppInstanceModel).all()
