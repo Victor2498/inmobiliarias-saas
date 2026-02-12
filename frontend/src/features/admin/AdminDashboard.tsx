@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Shield, MessageSquare, Search, Filter, MoreHorizontal, TrendingUp, Users, AlertTriangle, Edit, Power, Trash2, X, Save } from 'lucide-react';
+import { Plus, Shield, MessageSquare, Search, Filter, MoreHorizontal, TrendingUp, Users, AlertTriangle, Edit, Power, Trash2, X, Save, Download } from 'lucide-react';
 import axiosInstance from '../../api/axiosInstance';
 
 interface Tenant {
@@ -130,6 +130,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
         }
     };
 
+    const handleExportTenant = async (tenant: Tenant) => {
+        try {
+            const response = await axiosInstance.get(`/reports/admin/export-movements/${tenant.id}`, {
+                responseType: 'blob',
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            link.setAttribute('download', `backup_${tenant.name}_${date}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error(err);
+            alert('Error al descargar backup');
+        }
+    };
+
     // Renderizado del Dashboard de KPIs
     if (view === 'dashboard') {
         return (
@@ -152,6 +172,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                         onEdit={openEditModal}
                         onToggleStatus={handleToggleStatus}
                         onDelete={handleDeleteTenant}
+                        onExport={handleExportTenant}
                     />
                 </div>
             </div>
@@ -202,6 +223,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                 onEdit={openEditModal}
                 onToggleStatus={handleToggleStatus}
                 onDelete={handleDeleteTenant}
+                onExport={handleExportTenant}
             />
 
             {/* Modal de Creación */}
@@ -336,10 +358,11 @@ interface TenantTableProps {
     onEdit?: (tenant: Tenant) => void;
     onToggleStatus?: (tenant: Tenant) => void;
     onDelete?: (tenant: Tenant) => void;
+    onExport?: (tenant: Tenant) => void;
 }
 
 
-const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete }: TenantTableProps) => {
+const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete, onExport }: TenantTableProps) => {
     return (
         <div className="overflow-x-auto pb-20">
             <table className="w-full text-left border-collapse">
@@ -386,6 +409,16 @@ const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete }: Ten
                             )}
                             <td className="py-4 text-right pr-4">
                                 <div className="flex justify-end items-center space-x-2">
+                                    {onExport && (
+                                        <button
+                                            onClick={() => onExport(t)}
+                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-blue-600"
+                                            title="Descargar Backup"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                        </button>
+                                    )}
+
                                     {onEdit && (
                                         <button
                                             onClick={() => onEdit(t)}

@@ -1,3 +1,4 @@
+from fastapi import APIRouter
 from app.api.v1 import auth, tenants, properties, webhooks, whatsapp, people, contracts, admin, payments, liquidations, reports
 
 api_router = APIRouter()
