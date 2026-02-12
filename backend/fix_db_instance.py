@@ -1,13 +1,33 @@
 """
 Script para verificar y arreglar el registro de la instancia en la Base de Datos
 """
-from app.infrastructure.database.connection import SessionLocal
-from app.domain.models.tenant import WhatsAppInstanceModel, TenantModel
-from app.domain.models.whatsapp import WhatsAppMessageModel
-import uuid
+import sys
+import os
+
+# Asegurar que el directorio actual está en el path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+
+print(f"Directorio de trabajo: {os.getcwd()}")
+print(f"Sys Path: {sys.path}")
+
+try:
+    if not os.path.exists(os.path.join(current_dir, "app")):
+        print("❌ ALERTA: No encuentro la carpeta 'app' en el directorio actual.")
+        print("Contenido actual:", os.listdir(current_dir))
+
+    from app.infrastructure.database.connection import SessionLocal
+    from app.domain.models.tenant import WhatsAppInstanceModel, TenantModel
+    from app.domain.models.whatsapp import WhatsAppMessageModel
+    import uuid
+except ImportError as e:
+    print(f"❌ Error de Importación Crítico: {e}")
+    print("Contenido del directorio:", os.listdir(current_dir))
+    sys.exit(1)
 
 def fix_db():
-    db = SessionLocal()
+    try:
+        db = SessionLocal()
     try:
         instance_name = "tenant_a866a4c0-c219-4ec8"
         tenant_id = "a866a4c0-c219-4ec8"
