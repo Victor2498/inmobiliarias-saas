@@ -13,8 +13,14 @@ class WhatsAppManagerService:
     async def get_or_create_connection(self, tenant_id: str) -> dict:
         """Coordina la obtencion de QR y estado de la instancia."""
         tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
-        if not tenant or not tenant.whatsapp_enabled:
-            raise HTTPException(status_code=403, detail="WhatsApp no habilitado para esta inmobiliaria")
+        if not tenant:
+            logger.error(f"❌ Tenant {tenant_id} no encontrado")
+            raise HTTPException(status_code=404, detail="Inmobiliaria no encontrada")
+            
+        logger.info(f"🟢 Intento de conexión WhatsApp - Tenant: {tenant.name}, Plan: {tenant.plan}, Enabled: {tenant.whatsapp_enabled}")
+
+        if not tenant.whatsapp_enabled:
+            raise HTTPException(status_code=403, detail=f"WhatsApp no habilitado para el plan {tenant.plan}. Contacte a soporte.")
 
         instance = self.db.query(WhatsAppInstanceModel).filter(
             WhatsAppInstanceModel.tenant_id == tenant_id
