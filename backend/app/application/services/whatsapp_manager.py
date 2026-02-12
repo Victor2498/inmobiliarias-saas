@@ -3,7 +3,10 @@ from app.domain.models.tenant import TenantModel, WhatsAppInstanceModel
 from app.infrastructure.persistence.repository import BaseRepository
 from app.infrastructure.external.whatsapp_client import whatsapp_client
 from fastapi import HTTPException
+import logging
 import uuid
+
+logger = logging.getLogger(__name__)
 
 class WhatsAppManagerService:
     def __init__(self, db: Session):
