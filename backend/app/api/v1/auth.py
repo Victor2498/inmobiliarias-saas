@@ -6,10 +6,15 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.infrastructure.security import hashing, tokens
 from app.infrastructure.persistence.models import UserModel, TenantModel
-from app.api.v1.schemas import TenantLogin, UserLogin
+from app.api.v1.schemas import TenantLogin, UserLogin, ChangePassword
+from app.api.deps import get_current_user as get_user_dep
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+
+
 
 @router.post("/login/tenant")
 def login_tenant(data: TenantLogin, db: Session = Depends(get_db)):
@@ -106,3 +111,27 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         )
     logger.info("✅ Email verificado correctamente.")
     return {"message": "¡Email verificado con éxito! Ya puedes iniciar sesión en tu cuenta."}
+
+@router.post("/change-password")
+def change_password(
+    data: ChangePassword,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_user_dep)
+):
+    # from app.api.v1.schemas import ChangePassword # Removed local import
+    
+    # 1. Verificar password actual
+    if not hashing.verify_password(data.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta.")
+    
+    # 2. Validar nueva contraseña (longitud mínima, etc - por ahora basico)
+    if len(data.new_password) < 8:
+        raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 8 caracteres.")
+        
+    # 3. Actualizar password
+    current_user.hashed_password = hashing.get_password_hash(data.new_password)
+    current_user.force_password_change = False # Si estaba forzado, ya no
+    db.commit()
+    
+    logger.info(f"🔑 Contraseña actualizada exitosamente para: {current_user.email}")
+    return {"message": "Contraseña actualizada correctamente."}

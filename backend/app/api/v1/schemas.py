@@ -15,6 +15,10 @@ class Token(BaseModel):
     token_type: str
     user: Dict[str, Any]
 
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+
 class TenantResponse(BaseModel):
     id: str
     name: str

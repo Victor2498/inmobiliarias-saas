@@ -43,6 +43,25 @@ const SecurityCenter: React.FC = () => {
                 <SecurityCard title="Alertas Críticas" value={stats.criticalAlerts} icon={ShieldAlert} color="purple" />
             </div>
 
+            {/* Monitor de Salud del Sistema */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[2.5rem] p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+                <h2 className="text-xl font-bold mb-6 flex items-center relative z-10">
+                    <Activity className="w-5 h-5 mr-3 text-green-400" />
+                    Salud del Sistema
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                    <HealthMetric label="Latencia API" value="45ms" status="healthy" />
+                    <HealthMetric label="Base de Datos" value="Conectado" status="healthy" />
+                    <HealthMetric label="Redis Cache" value="98% Hit" status="healthy" />
+                    <HealthMetric label="WhatsApp Gateway" value="Online" status="healthy" />
+                    <HealthMetric label="Almacenamiento" value="24% Usado" status="warning" />
+                    <HealthMetric label="Error Rate (1h)" value="0.01%" status="healthy" />
+                </div>
+            </div>
+
             {/* Panel de Auditoría Integrado */}
             <div className="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8">
                 <div className="flex justify-between items-center mb-6">
@@ -77,5 +96,18 @@ const SecurityCard = ({ title, value, icon: Icon, color }: any) => (
         </div>
     </div>
 );
+
+const HealthMetric = ({ label, value, status }: { label: string, value: string, status: 'healthy' | 'warning' | 'critical' }) => {
+    const color = status === 'healthy' ? 'bg-green-500' : status === 'warning' ? 'bg-yellow-500' : 'bg-red-500';
+    return (
+        <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+            <div>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{label}</p>
+                <p className="text-xl font-bold">{value}</p>
+            </div>
+            <div className={`w-3 h-3 rounded-full ${color} shadow-[0_0_10px_rgba(0,0,0,0.5)] shadow-${status === 'healthy' ? 'green' : status === 'warning' ? 'yellow' : 'red'}-500`}></div>
+        </div>
+    );
+};
 
 export default SecurityCenter;

@@ -6,16 +6,17 @@ import {
     MessageSquare,
     LayoutDashboard,
     ShieldCheck,
-    Activity,
     ChevronRight,
     LogOut,
     Bell,
     Lock
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
-import AuditLogPanel from './AuditLogPanel';
 import BillingPanel from './BillingPanel';
 import WhatsAppPanel from './WhatsAppPanel';
+import SecuritySettingsPanel from './SecuritySettingsPanel';
+import SecurityCenter from './SecurityCenter';
+import { Settings } from 'lucide-react';
 
 interface SidebarItemProps {
     icon: any;
@@ -46,24 +47,24 @@ const AdminLayout: React.FC = () => {
         { id: 'tenants', label: 'Gestión Inmobiliarias', icon: Building2 },
         { id: 'billing', label: 'Planes y Pagos', icon: CreditCard },
         { id: 'whatsapp', label: 'WhatsApp Manager', icon: MessageSquare },
-        { id: 'security', label: 'Seguridad y Auditoría', icon: ShieldCheck },
-        { id: 'health', label: 'Salud del Sistema', icon: Activity },
+        { id: 'security', label: 'Seguridad y Salud', icon: ShieldCheck },
+        { id: 'settings', label: 'Ajustes', icon: Settings },
     ];
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <AdminDashboard setActiveTab={setActiveTab} />; // Dashboard con KPIs
+                return <AdminDashboard setActiveTab={setActiveTab} />;
             case 'tenants':
-                return <AdminDashboard view="list" />; // Reutilizamos pero con vista de lista focalizada
+                return <AdminDashboard view="list" />;
             case 'billing':
                 return <BillingPanel />;
             case 'whatsapp':
                 return <WhatsAppPanel />;
             case 'security':
-                return <AuditLogPanel />; // Evolucionará a SecurityCenter
-            case 'health':
-                return <div className="p-8 text-center text-slate-500">Próximamente: Monitor de Salud</div>;
+                return <SecurityCenter />;
+            case 'settings':
+                return <SecuritySettingsPanel />;
             default:
                 return <AdminDashboard setActiveTab={setActiveTab} />;
         }
