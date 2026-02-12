@@ -33,16 +33,30 @@ class AuthService:
             )
         ).first()
 
-        # Si no lo encontramos, intentamos buscar si el identificador es el nombre de la inmobiliaria
+        # Si no lo encontramos, intentamos buscar si el identificador es el nombre de la inmobiliaria o su email comercial
         if not user:
-            logger.info(f"❓ Usuario no encontrado por email/username, buscando por nombre de inmobiliaria: {identifier}")
-            tenant = self.db.query(TenantModel).filter(func.lower(TenantModel.name) == identifier.lower()).first()
+            logger.info(f"❓ Usuario no encontrado por email/username, buscando en tabla de Tenants: {identifier}")
+            tenant = self.db.query(TenantModel).filter(
+                or_(
+                    func.lower(TenantModel.name) == identifier.lower(),
+                    func.lower(TenantModel.email) == identifier.lower()
+                )
+            ).first()
+
             if tenant:
                 logger.info(f"🏢 Inmobiliaria encontrada: {tenant.id}, buscando administrador...")
+                # Intentamos primero con el Administrador
                 user = self.db.query(UserModel).filter(
                     UserModel.tenant_id == tenant.id,
                     UserModel.role == "INMOBILIARIA_ADMIN"
                 ).first()
+                
+                # Fallback: Si no hay admin con ese rol exacto, tomamos el primer usuario activo vinculado
+                if not user:
+                    user = self.db.query(UserModel).filter(
+                        UserModel.tenant_id == tenant.id,
+                        UserModel.is_active == True
+                    ).first()
 
         if user:
             logger.info(f"👤 Usuario administrador localizado para {identifier}: {user.email}")
