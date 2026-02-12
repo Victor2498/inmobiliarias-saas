@@ -100,7 +100,7 @@ class PaymentService:
                 amount=response.get("transaction_amount"),
                 payment_method="MERCADOPAGO",
                 transaction_id=str(payment_id),
-                metadata={"mp_response": response}
+                payment_info={"mp_response": response}
             ))
             logger.info(f"Cobro {charge_id} confirmado")
 
@@ -117,6 +117,6 @@ class PaymentService:
                 amount=response.get("transaction_amount"),
                 payment_method="MERCADOPAGO_UPGRADE",
                 transaction_id=str(payment_id),
-                metadata={"new_plan": new_plan}
+                payment_info={"new_plan": new_plan}
             ))
             logger.info(f"Inmobiliaria {tenant_id} upgrade a {new_plan}")

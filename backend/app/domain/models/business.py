@@ -73,7 +73,7 @@ class PaymentModel(Base):
     amount = Column(Float)
     payment_method = Column(String)
     transaction_id = Column(String, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    payment_info = Column(JSON, nullable=True)
     payment_date = Column(DateTime, default=datetime.datetime.utcnow)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     

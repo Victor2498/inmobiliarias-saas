@@ -6,7 +6,7 @@ class PaymentBase(BaseModel):
     amount: float
     payment_method: str
     transaction_id: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    payment_info: Optional[Dict[str, Any]] = None
 
 class PaymentCreate(PaymentBase):
     tenant_id: str
