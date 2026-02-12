@@ -17,6 +17,7 @@ const WhatsAppPanel: React.FC = () => {
             const res = await axiosInstance.get('/whatsapp/status');
             setStatus(res.data.status);
         } catch (err: any) {
+            console.error('Error fetching WhatsApp status:', err);
             if (err.response?.status === 403) {
                 setStatus('ERROR');
             } else {
@@ -37,8 +38,9 @@ const WhatsAppPanel: React.FC = () => {
             const res = await axiosInstance.post('/whatsapp/connect');
             setQr(res.data.qr);
             setStatus('QR_PENDING');
-        } catch (err) {
-            alert('Error al conectar WhatsApp');
+        } catch (err: any) {
+            const msg = err.response?.data?.detail || 'Error al conectar WhatsApp';
+            alert(msg);
         } finally {
             setLoading(false);
         }
