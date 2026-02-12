@@ -15,6 +15,11 @@ try:
     if not os.path.exists(os.path.join(current_dir, "app")):
         print("❌ ALERTA: No encuentro la carpeta 'app' en el directorio actual.")
         print("Contenido actual:", os.listdir(current_dir))
+    
+    # Verificar si app es un paquete
+    if not os.path.exists(os.path.join(current_dir, "app", "__init__.py")):
+        print("⚠️ ALERTA: 'app' no tiene __init__.py. Python no lo detectará como paquete.")
+        print("Contenido de 'app':", os.listdir(os.path.join(current_dir, "app")))
 
     from app.infrastructure.database.connection import SessionLocal
     from app.domain.models.tenant import WhatsAppInstanceModel, TenantModel
@@ -23,6 +28,8 @@ try:
 except ImportError as e:
     print(f"❌ Error de Importación Crítico: {e}")
     print("Contenido del directorio:", os.listdir(current_dir))
+    if os.path.exists(os.path.join(current_dir, "app")):
+         print("Contenido de 'app':", os.listdir(os.path.join(current_dir, "app")))
     sys.exit(1)
 
 def fix_db():
