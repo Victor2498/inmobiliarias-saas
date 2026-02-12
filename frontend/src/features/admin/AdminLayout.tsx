@@ -4,12 +4,13 @@ import {
     Building2,
     CreditCard,
     MessageSquare,
-    Lock,
-    History,
-    Server,
+    LayoutDashboard,
+    ShieldCheck,
+    Activity,
     ChevronRight,
     LogOut,
-    Bell
+    Bell,
+    Lock
 } from 'lucide-react';
 import AdminDashboard from './AdminDashboard';
 import AuditLogPanel from './AuditLogPanel';
@@ -41,21 +42,30 @@ const AdminLayout: React.FC = () => {
     const [activeTab, setActiveTab] = useState('tenants');
 
     const menuItems = [
-        { id: 'tenants', label: 'Inmobiliarias', icon: Building2 },
-        { id: 'billing', label: 'Suscripciones', icon: CreditCard },
-        { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare },
-        { id: 'security', label: 'Seguridad', icon: Lock },
-        { id: 'audit', label: 'Auditoría', icon: History },
-        { id: 'health', label: 'Estado Sistema', icon: Server },
+        { id: 'dashboard', label: 'Dashboard General', icon: LayoutDashboard },
+        { id: 'tenants', label: 'Gestión Inmobiliarias', icon: Building2 },
+        { id: 'billing', label: 'Planes y Pagos', icon: CreditCard },
+        { id: 'whatsapp', label: 'WhatsApp Manager', icon: MessageSquare },
+        { id: 'security', label: 'Seguridad y Auditoría', icon: ShieldCheck },
+        { id: 'health', label: 'Salud del Sistema', icon: Activity },
     ];
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'tenants': return <AdminDashboard />;
-            case 'audit': return <AuditLogPanel />;
-            case 'billing': return <BillingPanel />;
-            case 'whatsapp': return <WhatsAppPanel />;
-            default: return <div className="p-8 text-center text-slate-400">Módulo {activeTab} en desarrollo.</div>;
+            case 'dashboard':
+                return <AdminDashboard setActiveTab={setActiveTab} />; // Dashboard con KPIs
+            case 'tenants':
+                return <AdminDashboard view="list" />; // Reutilizamos pero con vista de lista focalizada
+            case 'billing':
+                return <BillingPanel />;
+            case 'whatsapp':
+                return <WhatsAppPanel />;
+            case 'security':
+                return <AuditLogPanel />; // Evolucionará a SecurityCenter
+            case 'health':
+                return <div className="p-8 text-center text-slate-500">Próximamente: Monitor de Salud</div>;
+            default:
+                return <AdminDashboard setActiveTab={setActiveTab} />;
         }
     };
 

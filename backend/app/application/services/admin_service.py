@@ -29,6 +29,7 @@ class AdminService:
             preferences={"theme": "light"}
         )
         db.add(new_tenant)
+        db.flush() # Force ID creation for AuditLog FK
         
         # 3. Registrar en Auditoría
         AdminService.log_action(

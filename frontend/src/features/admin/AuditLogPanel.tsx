@@ -11,7 +11,11 @@ interface AuditLog {
     timestamp: string;
 }
 
-const AuditLogPanel: React.FC = () => {
+interface AuditLogPanelProps {
+    embedded?: boolean;
+}
+
+const AuditLogPanel: React.FC<AuditLogPanelProps> = ({ embedded = false }) => {
     const [logs, setLogs] = useState<AuditLog[]>([]);
 
     useEffect(() => {
@@ -31,16 +35,18 @@ const AuditLogPanel: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold">Registro de Auditoría</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Historial inmutable de acciones administrativas.</p>
+            {!embedded && (
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-2xl font-bold">Registro de Auditoría</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Historial inmutable de acciones administrativas.</p>
+                    </div>
+                    <div className="flex space-x-2">
+                        <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all">Exportar CSV</button>
+                        <button className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">Filtros Avanzados</button>
+                    </div>
                 </div>
-                <div className="flex space-x-2">
-                    <button className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all">Exportar CSV</button>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">Filtros Avanzados</button>
-                </div>
-            </div>
+            )}
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-hidden shadow-sm">
                 <table className="w-full text-left">

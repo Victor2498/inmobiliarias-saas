@@ -45,8 +45,16 @@ class WhatsAppService:
             if response.status_code == 200:
                 data = response.json()
                 # Mapear estados de Evolution API a nuestros estados internos
-                state = data.get("instance", {}).get("state", "DISCONNECTED")
-                return "CONNECTED" if state == "open" else "DISCONNECTED"
+                state = data.get("instance", {}).get("state", "close")
+                # Evolution API states: close, connecting, open
+                if state == "open":
+                    return "CONNECTED"
+                elif state == "connecting":
+                    return "CONNECTING"
+                elif state == "close":
+                    return "DISCONNECTED"
+                else:
+                    return "Unknown"
             return "ERROR"
 
     async def logout_instance(self, instance_name: str) -> bool:

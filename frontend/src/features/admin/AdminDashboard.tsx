@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Shield, Mail, MessageSquare } from 'lucide-react';
+import { Plus, Shield, MessageSquare, Search, Filter, MoreHorizontal, TrendingUp, Users, AlertTriangle } from 'lucide-react';
 import axiosInstance from '../../api/axiosInstance';
 
 interface Tenant {
@@ -11,13 +11,21 @@ interface Tenant {
     plan: string;
     whatsapp_enabled: boolean;
     created_at: string;
+    status: string; // active, suspended, pending
 }
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+    view?: 'dashboard' | 'list';
+    setActiveTab?: (tab: string) => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', setActiveTab }) => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [stats, setStats] = useState({ totalContext: 0, active: 0, mrr: 0, errors: 0 });
+    const [searchTerm, setSearchTerm] = useState('');
     const [showCreate, setShowCreate] = useState(false);
 
-    // Form state
+    // Form state (Simplificado para el ejemplo, ampliar real)
     const [newName, setNewName] = useState('');
     const [newEmail, setNewEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -28,10 +36,20 @@ const AdminDashboard: React.FC = () => {
         try {
             const res = await axiosInstance.get('/admin/');
             setTenants(res.data);
+            // Calcular stats básicas
+            const active = res.data.filter((t: Tenant) => t.is_active).length;
+            const mrr = res.data.reduce((acc: number, t: Tenant) => {
+                const price = t.plan === 'premium' ? 29900 : t.plan === 'basic' ? 14900 : 0; // Precios ejemplo
+                return acc + price;
+            }, 0);
+            setStats({
+                totalContext: res.data.length,
+                active,
+                mrr,
+                errors: res.data.filter((t: Tenant) => !t.is_active).length // Dummies
+            });
         } catch (err) {
             console.error(err);
-        } finally {
-            // Loading handled by layout or local state if needed
         }
     };
 
@@ -50,50 +68,47 @@ const AdminDashboard: React.FC = () => {
                 whatsapp_enabled: newWhatsApp
             });
             setShowCreate(false);
-            setNewName('');
-            setNewEmail('');
-            setNewPassword('');
-            setNewPlan('lite');
-            setNewWhatsApp(false);
+            setNewName(''); setNewEmail(''); setNewPassword('');
             fetchTenants();
         } catch (err) {
             alert('Error al crear inmobiliaria');
         }
     };
 
-    const toggleStatus = async (id: string, currentStatus: boolean) => {
-        try {
-            await axiosInstance.patch(`/admin/${id}`, { is_active: !currentStatus });
-            fetchTenants();
-        } catch (err) {
-            alert('Error al actualizar estado');
-        }
-    };
+    // Renderizado del Dashboard de KPIs
+    if (view === 'dashboard') {
+        return (
+            <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <MetricCard title="MRR Estimado" value={`$${stats.mrr.toLocaleString()}`} icon={TrendingUp} color="blue" />
+                    <MetricCard title="Inmobiliarias Activas" value={stats.active.toString()} icon={Users} color="green" />
+                    <MetricCard title="Total Registradas" value={stats.totalContext.toString()} icon={Shield} color="purple" />
+                    <MetricCard title="Alertas / Suspendidas" value={stats.errors.toString()} icon={AlertTriangle} color="red" />
+                </div>
 
-    const toggleWhatsApp = async (id: string, currentStatus: boolean) => {
-        try {
-            await axiosInstance.patch(`/admin/${id}`, { whatsapp_enabled: !currentStatus });
-            fetchTenants();
-        } catch (err) {
-            alert('Error al actualizar WhatsApp');
-        }
-    };
+                <div className="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold">Últimas Inmobiliarias</h2>
+                        <button onClick={() => setActiveTab && setActiveTab('tenants')} className="text-blue-600 font-bold text-sm hover:underline">Ver todas</button>
+                    </div>
+                    <TenantTable tenants={tenants.slice(0, 5)} compact />
+                </div>
+            </div>
+        );
+    }
 
-    const updatePlan = async (id: string, plan: string) => {
-        try {
-            await axiosInstance.patch(`/admin/${id}`, { plan });
-            fetchTenants();
-        } catch (err) {
-            alert('Error al actualizar plan');
-        }
-    };
+    // Renderizado de la Lista de Gestión (view === 'list')
+    const filteredTenants = tenants.filter(t =>
+        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold">Gestión de Inmobiliarias</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Alta, baja y control de acceso multi-tenant.</p>
+                    <p className="text-slate-500 text-sm">Control total de accesos y servicios.</p>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
@@ -104,7 +119,27 @@ const AdminDashboard: React.FC = () => {
                 </button>
             </div>
 
-            {/* Modal de Creación */}
+            <div className="flex space-x-4 mb-6">
+                <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre o email..."
+                        className="w-full bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 pl-12 pr-4 py-3 rounded-2xl outline-none focus:ring-2 ring-blue-500 transition-all font-medium"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <button className="px-4 py-3 bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center space-x-2 text-slate-500 font-bold hover:text-blue-600">
+                    <Filter className="w-5 h-5" />
+                    <span>Filtros</span>
+                </button>
+            </div>
+
+            <TenantTable tenants={filteredTenants} />
+
+            {/* Modal de Creación (Reutilizar lógica existente) */}
+            {/* ... Modal code ... */}
             {showCreate && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <motion.div
@@ -150,62 +185,77 @@ const AdminDashboard: React.FC = () => {
                     </motion.div>
                 </div>
             )}
-
-            {/* Grid de Tenants */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {tenants.map(tenant => (
-                    <motion.div key={tenant.id} layout className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
-                        {/* Indicador de Plan */}
-                        <div className={`absolute top-0 right-0 px-6 py-2 rounded-bl-3xl text-[10px] font-black uppercase tracking-widest ${tenant.plan === 'premium' ? 'bg-purple-600 text-white' :
-                            tenant.plan === 'basic' ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                            }`}>
-                            Plan {tenant.plan}
-                        </div>
-
-                        <div className="flex justify-between items-start mb-6">
-                            <div className={`p-4 rounded-2xl ${tenant.is_active ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                <Shield className="w-7 h-7" />
-                            </div>
-                            <div className="flex flex-col items-end space-y-2">
-                                <button onClick={() => toggleStatus(tenant.id, tenant.is_active)} className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all ${tenant.is_active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                                    {tenant.is_active ? 'Activa' : 'Suspendida'}
-                                </button>
-                                <button onClick={() => toggleWhatsApp(tenant.id, tenant.whatsapp_enabled)} className={`flex items-center space-x-2 px-3 py-1 rounded-full text-[10px] font-bold ${tenant.whatsapp_enabled ? 'bg-blue-500/10 text-blue-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                    <MessageSquare className="w-3 h-3" />
-                                    <span>{tenant.whatsapp_enabled ? 'WA ON' : 'WA OFF'}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <h3 className="text-2xl font-black mb-1 group-hover:text-blue-600 transition-colors truncate">{tenant.name}</h3>
-                        <div className="flex items-center text-slate-400 text-sm mb-6 font-medium">
-                            <Mail className="w-4 h-4 mr-2" />
-                            {tenant.email}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Cambiar Plan</span>
-                                <select
-                                    className="bg-transparent text-sm font-bold outline-none cursor-pointer hover:text-blue-500 transition-colors"
-                                    value={tenant.plan}
-                                    onChange={(e) => updatePlan(tenant.id, e.target.value)}
-                                >
-                                    <option value="lite">Lite</option>
-                                    <option value="basic">Básico</option>
-                                    <option value="premium">Premium</option>
-                                </select>
-                            </div>
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">Desde</span>
-                                <span className="text-sm font-bold">{new Date(tenant.created_at).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
         </div>
     );
 };
+
+// Subcomponentes para limpieza
+const MetricCard = ({ title, value, icon: Icon, color }: any) => (
+    <div className="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem] flex items-center space-x-4 shadow-sm">
+        <div className={`p-4 rounded-2xl bg-${color}-500/10 text-${color}-500`}>
+            <Icon className="w-6 h-6" />
+        </div>
+        <div>
+            <p className="text-slate-500 text-sm font-bold uppercase">{title}</p>
+            <p className="text-2xl font-black">{value}</p>
+        </div>
+    </div>
+);
+
+const TenantTable = ({ tenants, compact }: { tenants: Tenant[], compact?: boolean }) => (
+    <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+            <thead>
+                <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                    <th className="pb-4 pl-4">Inmobiliaria</th>
+                    <th className="pb-4">Plan</th>
+                    <th className="pb-4">Estado</th>
+                    {!compact && <th className="pb-4">WhatsApp</th>}
+                    <th className="pb-4 text-right pr-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody className="text-sm">
+                {tenants.map((t) => (
+                    <tr key={t.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 pl-4 font-bold">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                    {t.name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div className="text-slate-900 dark:text-white">{t.name}</div>
+                                    <div className="text-xs text-slate-400 font-normal">{t.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td className="py-4">
+                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${t.plan === 'premium' ? 'bg-purple-100 text-purple-600' :
+                                t.plan === 'basic' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                {t.plan}
+                            </span>
+                        </td>
+                        <td className="py-4">
+                            <span className={`flex items-center space-x-1.5 text-xs font-bold ${t.is_active ? 'text-green-500' : 'text-red-500'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${t.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                <span>{t.is_active ? 'Activo' : 'Suspendido'}</span>
+                            </span>
+                        </td>
+                        {!compact && (
+                            <td className="py-4 text-slate-500">
+                                {t.whatsapp_enabled ? <MessageSquare className="w-4 h-4 text-green-500" /> : <div className="w-4 h-4 bg-slate-200 rounded-full"></div>}
+                            </td>
+                        )}
+                        <td className="py-4 text-right pr-4">
+                            <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                                <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
 
 export default AdminDashboard;
