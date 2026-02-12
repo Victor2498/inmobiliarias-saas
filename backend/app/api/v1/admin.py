@@ -65,3 +65,11 @@ def get_audit_logs(
 ):
     from app.infrastructure.persistence.models import AuditLogModel
     return db.query(AuditLogModel).order_by(AuditLogModel.timestamp.desc()).limit(100).all()
+
+@router.get("/billing", response_model=List[Dict[str, Any]])
+def get_billing_history(
+    db: Session = Depends(get_db), 
+    _ = Depends(admin_only)
+):
+    from app.infrastructure.persistence.models import SubscriptionHistoryModel
+    return db.query(SubscriptionHistoryModel).order_by(SubscriptionHistoryModel.created_at.desc()).limit(100).all()
