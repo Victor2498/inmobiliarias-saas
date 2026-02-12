@@ -8,48 +8,53 @@ class EvolutionAPIClient:
     def __init__(self):
         self.url = settings.EVOLUTION_API_URL
         self.token = settings.EVOLUTION_API_TOKEN
-        self.headers = {"apikey": self.token}
+        self.headers = {"apikey": self.token or ""}
+
+    async def _safe_request(self, method: str, path: str, **kwargs):
+        """Maneja peticiones con logging y manejo de errores robusto."""
+        if not self.token:
+            logger.error("❌ Evolution API Token no configurado")
+            return None
+
+        url = f"{self.url}/{path.lstrip('/')}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.request(method, url, headers=self.headers, **kwargs)
+                
+                if resp.status_code >= 400:
+                    logger.error(f"❌ Error en Evolution API ({method} {path}): Status {resp.status_code} - {resp.text}")
+                    return None
+                
+                try:
+                    return resp.json()
+                except Exception:
+                    logger.error(f"❌ La respuesta de Evolution API no es JSON válido ({method} {path})")
+                    return None
+        except Exception as e:
+            logger.error(f"❌ Error de conexión con Evolution API ({method} {path}): {str(e)}")
+            return None
 
     async def create_instance(self, name: str):
-        try:
-            async with httpx.AsyncClient() as client:
-                data = {
-                    "instanceName": name,
-                    "token": "admin123", # Token interno opcional
-                    "qrcode": True
-                }
-                resp = await client.post(f"{self.url}/instance/create", json=data, headers=self.headers)
-                return resp.json()
-        except Exception as e:
-            logger.error(f"Error creating MP instance: {e}")
-            return None
+        data = {
+            "instanceName": name,
+            "token": "admin123", # Token interno opcional
+            "qrcode": True
+        }
+        return await self._safe_request("POST", "/instance/create", json=data)
 
     async def get_qr_code(self, name: str):
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(f"{self.url}/instance/connect/{name}", headers=self.headers)
-                return resp.json().get("base64")
-        except Exception as e:
-            logger.error(f"Error getting QR: {e}")
-            return None
+        resp = await self._safe_request("GET", f"/instance/connect/{name}")
+        return resp.get("base64") if resp else None
 
     async def get_instance_status(self, name: str):
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(f"{self.url}/instance/connectionState/{name}", headers=self.headers)
-                status = resp.json().get("instance", {}).get("state", "DISCONNECTED")
-                return "CONNECTED" if status == "open" else "DISCONNECTED"
-        except:
-            return "DISCONNECTED"
+        resp = await self._safe_request("GET", f"/instance/connectionState/{name}")
+        if not resp: return "DISCONNECTED"
+        status = resp.get("instance", {}).get("state", "DISCONNECTED")
+        return "CONNECTED" if status == "open" else "DISCONNECTED"
 
     async def logout_instance(self, name: str):
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(f"{self.url}/instance/logout/{name}", headers=self.headers)
-                return resp.status_code == 200
-        except Exception as e:
-            logger.error(f"Error logout: {e}")
-            return False
+        resp = await self._safe_request("POST", f"/instance/logout/{name}")
+        return resp is not None
 
 # Export instance for use as singleton
 whatsapp_client = EvolutionAPIClient()
