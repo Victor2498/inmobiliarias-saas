@@ -35,12 +35,38 @@ class EvolutionAPIClient:
             return None
 
     async def create_instance(self, name: str):
+        # 1. Crear instancia
         data = {
             "instanceName": name,
             "qrcode": True,
-            "integration": "WHATSAPP-BAILEYS"  # Requerido para Evolution API v2
+            "integration": "WHATSAPP-BAILEYS"
         }
-        return await self._safe_request("POST", "/instance/create", json=data)
+        create_resp = await self._safe_request("POST", "/instance/create", json=data)
+        
+        if not create_resp:
+            return None
+
+        # 2. Configurar Webhook automáticamente
+        # En producción (Docker), el backend suele estar en el servicio 'sistema_inmobiliaria' o 'backend'
+        # Usamos una variable de entorno para la URL del webhook si existe, sino default
+        webhook_url = settings.WEBHOOK_URL_OVERRIDE or "http://sistema_inmobiliaria:80/api/v1/webhooks/evolution"
+        
+        webhook_data = {
+            "webhook": {
+                "enabled": True,
+                "url": webhook_url,
+                "events": ["MESSAGES_UPSERT", "MESSAGES_UPDATE", "SEND_MESSAGE"]
+            }
+        }
+        
+        # Intentar configurar webhook
+        try:
+            await self._safe_request("POST", f"/webhook/set/{name}", json=webhook_data)
+        except Exception as e:
+            logger.error(f"⚠️ Error configurando webhook: {e}")
+            # No fallamos la creación si el webhook falla, pero logueamos error
+            
+        return create_resp
 
     async def get_qr_code(self, name: str):
         resp = await self._safe_request("GET", f"/instance/connect/{name}")
