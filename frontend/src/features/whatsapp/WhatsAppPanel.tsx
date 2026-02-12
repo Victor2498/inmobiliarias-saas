@@ -10,7 +10,7 @@ const WhatsAppPanel: React.FC = () => {
     const [qr, setQr] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const plan = (user as any)?.plan || 'lite';
+    const plan = ((user as any)?.plan || 'lite').toLowerCase();
 
     const fetchStatus = async () => {
         try {

@@ -152,6 +152,7 @@ class AuthService:
                 "email": user.email,
                 "role": user.role,
                 "tenant_id": user.tenant_id,
+                "plan": user.tenant.plan if user.tenant else "lite",
                 "force_password_change": user.force_password_change
             }
         }

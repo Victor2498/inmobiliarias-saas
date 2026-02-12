@@ -78,11 +78,12 @@ class TenantService:
             # También actualizar el email del admin principal si coincide? 
             # Por simplicidad, solo actualizamos el contacto comercial del tenant por ahora.
         if "plan" in data:
-            tenant.plan_id = data["plan"] # Note: Model uses plan_id or plan? Check model.
-            # Assuming model has 'plan' based on registration, but let's check TenantModel in next step if error.
-            # Looking at previous register_tenant, it used plan_id="lite". 
-            # But AdminDashboard sends 'plan'. Let's Map it.
-            tenant.plan_id = data["plan"] 
+            new_plan = data["plan"].lower()
+            tenant.plan = new_plan
+            tenant.plan_id = new_plan
+            # Auto-activar WhatsApp si el plan lo incluye
+            if new_plan in ["basic", "premium"]:
+                tenant.whatsapp_enabled = True
         if "whatsapp_enabled" in data:
             tenant.whatsapp_enabled = data["whatsapp_enabled"]
 

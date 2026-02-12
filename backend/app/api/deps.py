@@ -49,7 +49,10 @@ class PlanChecker:
         if not tenant:
             raise HTTPException(status_code=404, detail="Inmobiliaria no encontrada")
             
-        if tenant.plan not in self.required_plans and user.role != "SUPERADMIN":
+        current_plan = (tenant.plan or "lite").lower()
+        required_plans = [p.lower() for p in self.required_plans]
+
+        if current_plan not in required_plans and user.role != "SUPERADMIN":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
                 detail=f"Esta funcionalidad requiere un plan superior ({', '.join(self.required_plans)})"
