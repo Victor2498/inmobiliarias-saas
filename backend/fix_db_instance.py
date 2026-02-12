@@ -26,8 +26,7 @@ except ImportError as e:
     sys.exit(1)
 
 def fix_db():
-    try:
-        db = SessionLocal()
+    db = SessionLocal()
     try:
         instance_name = "tenant_a866a4c0-c219-4ec8"
         tenant_id = "a866a4c0-c219-4ec8"
