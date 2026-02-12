@@ -16,11 +16,15 @@ class TenantService:
         self.db = db
 
     def register_tenant(self, name: str, admin_email: EmailStr, admin_password: str, admin_full_name: str):
+        from sqlalchemy import func
+        name = name.strip()
+        admin_email = admin_email.strip()
+
         # 1. Validar unicidad
-        if self.db.query(TenantModel).filter(TenantModel.name == name).first():
+        if self.db.query(TenantModel).filter(func.lower(TenantModel.name) == name.lower()).first():
             raise HTTPException(status_code=400, detail="Inmobiliaria ya registrada")
         
-        if self.db.query(UserModel).filter(UserModel.email == admin_email).first():
+        if self.db.query(UserModel).filter(func.lower(UserModel.email) == admin_email.lower()).first():
             raise HTTPException(status_code=400, detail="Email de administrador ya en uso")
 
         # 2. Crear Tenant
