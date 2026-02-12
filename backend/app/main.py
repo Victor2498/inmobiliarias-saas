@@ -15,7 +15,16 @@ def create_app() -> FastAPI:
     async def startup_event():
         bootstrap_system()
     app.add_middleware(TenantMiddleware)
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+    
+    # Configuracion de CORS restrictiva
+    origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(api_router, prefix=settings.API_V1_STR)
     if os.path.exists("static"):
         app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")

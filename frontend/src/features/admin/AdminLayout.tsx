@@ -47,7 +47,7 @@ const AdminLayout: React.FC = () => {
     const logout = useAuthStore((state) => state.logout);
 
     const handleLogout = () => {
-        console.log("Logout clicked");
+
         // alert("Cerrando sesión..."); // Debug
         logout();
         window.location.href = '/login';

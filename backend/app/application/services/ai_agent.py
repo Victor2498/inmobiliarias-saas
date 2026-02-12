@@ -1,6 +1,6 @@
 from app.infrastructure.external.openai_service import OpenAIService
 from sqlalchemy.orm import Session
-from app.infrastructure.persistence.whatsapp_models import WhatsAppMessageModel
+from app.domain.models.whatsapp import WhatsAppMessageModel
 import logging
 
 logger = logging.getLogger(__name__)

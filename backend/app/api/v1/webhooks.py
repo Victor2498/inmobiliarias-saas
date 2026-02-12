@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.infrastructure.persistence.whatsapp_models import WhatsAppMessageModel, WhatsAppSessionModel
+from app.domain.models.whatsapp import WhatsAppMessageModel, WhatsAppSessionModel
 from app.infrastructure.external.openai_service import OpenAIService
 import logging
 import datetime

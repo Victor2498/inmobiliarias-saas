@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.infrastructure.security.tokens import verify_token
-from app.infrastructure.persistence.models import UserModel
+from app.domain.models.user import UserModel
 from app.infrastructure.security.tenant_context import set_current_tenant_id
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"/api/v1/auth/login")
@@ -42,7 +42,8 @@ class PlanChecker:
         self.required_plans = required_plans
 
     def __call__(self, db: Session = Depends(get_db), user: UserModel = Depends(get_current_user)):
-        from app.infrastructure.persistence.models import TenantModel
+        from app.domain.models.user import UserModel
+        from app.domain.models.tenant import TenantModel
         tenant = db.query(TenantModel).filter(TenantModel.id == user.tenant_id).first()
         
         if not tenant:

@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, JSON, Integer
-from app.infrastructure.persistence.models import Base
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, Integer
+from .base import Base
 import datetime
 
 class WhatsAppSessionModel(Base):
@@ -8,7 +8,7 @@ class WhatsAppSessionModel(Base):
     tenant_id = Column(String, ForeignKey("tenants.id"), index=True)
     instance_name = Column(String, unique=True)
     instance_id = Column(String)
-    status = Column(String, default="DISCONNECTED") # CONNECTED, DISCONNECTED, PAUSED
+    status = Column(String, default="DISCONNECTED")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class WhatsAppMessageModel(Base):
@@ -18,7 +18,7 @@ class WhatsAppMessageModel(Base):
     remote_jid = Column(String, index=True)
     from_me = Column(Boolean, default=False)
     content = Column(Text)
-    type = Column(String, default="text") # text, image, audio, etc.
+    type = Column(String, default="text")
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
-    intent = Column(String, nullable=True) # detectado por OpenAI
+    intent = Column(String, nullable=True)
     processed = Column(Boolean, default=False)

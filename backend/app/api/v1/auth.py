@@ -1,107 +1,28 @@
 import logging
-from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.infrastructure.security import hashing, tokens
-from app.infrastructure.persistence.models import UserModel, TenantModel
 from app.api.v1.schemas import TenantLogin, UserLogin, ChangePassword
 from app.api.deps import get_current_user as get_user_dep
+from app.domain.models.user import UserModel
+from app.application.services.auth_service import AuthService
+from app.application.services.verification_service import VerificationService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-
-
-
-
 @router.post("/login/tenant")
 def login_tenant(data: TenantLogin, db: Session = Depends(get_db)):
-    # Segun SPEC: Login dual para inmobiliarias (email o username)
-    # Buscamos en la tabla users al admin de esa inmobiliaria o usuario asociado
-    user = db.query(UserModel).filter(
-        or_(UserModel.email == data.nombre_inmobiliaria, UserModel.username == data.nombre_inmobiliaria)
-    ).first()
-    
-    if not user:
-        # Fallback para compatibilidad: buscar por nombre de tenant si el identifier no es email/user
-        tenant = db.query(TenantModel).filter(TenantModel.name == data.nombre_inmobiliaria).first()
-        if not tenant:
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
-        
-        if not hashing.verify_password(data.password, tenant.hashed_password):
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
-            
-        # Generar token para el tenant directamente (legacy compatible)
-        access_token = tokens.create_access_token(subject=tenant.email, tenant_id=tenant.id, role="INMOBILIARIA")
-        return {"access_token": access_token, "token_type": "bearer", "user": {"email": tenant.email, "role": "INMOBILIARIA", "tenant_id": tenant.id}}
-
-    # Si encontramos un usuario, usamos la lógica de seguridad avanzada
-    return process_user_login(user, data.password, db)
+    service = AuthService(db)
+    return service.login_tenant(data)
 
 @router.post("/login/admin")
 def login_admin(data: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(UserModel).filter(
-        or_(UserModel.email == data.identifier, UserModel.username == data.identifier)
-    ).first()
-    
-    return process_user_login(user, data.password, db)
-
-def process_user_login(user: UserModel, password: str, db: Session):
-    if not user:
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
-
-    # 1. Verificar Bloqueo
-    if user.locked_until and user.locked_until > datetime.utcnow():
-        diff = user.locked_until - datetime.utcnow()
-        minutes = int(diff.total_seconds() / 60) + 1
-        raise HTTPException(status_code=403, detail=f"Cuenta bloqueada temporalmente. Intente en {minutes} min.")
-
-    # 2. Verificar Password
-    if not hashing.verify_password(password, user.hashed_password):
-        user.failed_attempts += 1
-        logger.warning(f"❌ Intento de login fallido para: {user.email} (Intento {user.failed_attempts}/5)")
-        if user.failed_attempts >= 5:
-            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
-            logger.critical(f"🔒 BLOQUEO DE CUENTA activado por fuerza bruta: {user.email} desde IP (Rate Limit Activo)")
-        db.commit()
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
-
-    # 3. Verificar Verificación de Email (excepto SuperAdmin)
-    if not user.email_verified and user.role != "SUPERADMIN" and not user.is_system_account:
-        logger.info(f"🚫 Intento de login en cuenta no verificada: {user.email}")
-        raise HTTPException(status_code=403, detail="Email no verificado. Por favor, revise su casilla de correo.")
-
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Cuenta inactiva")
-
-    # 4. Éxito: Resetear intentos
-    user.failed_attempts = 0
-    user.locked_until = None
-    db.commit()
-    logger.info(f"✅ Login exitoso: {user.email} (Rol: {user.role})")
-
-    access_token = tokens.create_access_token(
-        subject=user.email,
-        tenant_id=user.tenant_id,
-        role=user.role
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": {
-            "email": user.email,
-            "role": user.role,
-            "tenant_id": user.tenant_id,
-            "force_password_change": user.force_password_change
-        }
-    }
+    service = AuthService(db)
+    return service.login_admin(data)
 
 @router.get("/verify-email")
 def verify_email(token: str, db: Session = Depends(get_db)):
-    from app.application.services.verification_service import VerificationService
     success = VerificationService.verify_email(token, db)
     if not success:
         logger.warning(f"❌ Intento de verificación fallido con token: {token}")
@@ -118,20 +39,8 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_user_dep)
 ):
-    # from app.api.v1.schemas import ChangePassword # Removed local import
-    
-    # 1. Verificar password actual
-    if not hashing.verify_password(data.current_password, current_user.hashed_password):
-        raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta.")
-    
-    # 2. Validar nueva contraseña (longitud mínima, etc - por ahora basico)
-    if len(data.new_password) < 8:
-        raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 8 caracteres.")
-        
-    # 3. Actualizar password
-    current_user.hashed_password = hashing.get_password_hash(data.new_password)
-    current_user.force_password_change = False # Si estaba forzado, ya no
-    db.commit()
-    
-    logger.info(f"🔑 Contraseña actualizada exitosamente para: {current_user.email}")
+    service = AuthService(db)
+    # Note: AuthService.change_password expects current_user object and data
+    service.change_password(current_user, data)
     return {"message": "Contraseña actualizada correctamente."}
+

@@ -2,10 +2,11 @@ import logging
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
-from app.infrastructure.persistence.models import Base, UserModel, TenantModel
-# Importar otros modelos para que Base.metadata los registre
-import app.infrastructure.persistence.business_models
-import app.infrastructure.persistence.whatsapp_models
+from app.domain.models.base import Base
+from app.domain.models.tenant import TenantModel
+from app.domain.models.user import UserModel
+import app.domain.models.business
+import app.domain.models.whatsapp
 from app.infrastructure.security.hashing import get_password_hash
 from app.core.config import settings
 

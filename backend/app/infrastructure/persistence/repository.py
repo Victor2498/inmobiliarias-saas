@@ -1,9 +1,9 @@
-from typing import Generic, TypeVar, Type, List, Optional
-from sqlalchemy.orm import Session
-from app.infrastructure.persistence.models import Base
+from typing import Generic, TypeVar, Type, List, Optional, Any
+from sqlalchemy.orm import Session, Query
+from app.domain.models.tenant import TenantModel
 from app.infrastructure.security.tenant_context import get_current_tenant_id
 
-T = TypeVar("T", bound=Base)
+T = TypeVar("T", bound=TenantModel)
 
 class BaseRepository(Generic[T]):
     """
@@ -14,28 +14,38 @@ class BaseRepository(Generic[T]):
         self.model = model
         self.db = db
 
-    def _get_tenant_filter(self):
+    def _get_query(self) -> Query:
         tenant_id = get_current_tenant_id()
-        if not tenant_id:
-            # Bloqueo total si no hay contexto de tenant
-            return False 
-        return self.model.tenant_id == tenant_id
+        query = self.db.query(self.model)
+        if hasattr(self.model, 'tenant_id'):
+            if tenant_id:
+                query = query.filter(self.model.tenant_id == tenant_id)
+            else:
+                # Si no hay tenant_id y el modelo lo requiere, filtramos para que no devuelva nada
+                query = query.filter(False)
+        return query
 
-    def get(self, id: any) -> Optional[T]:
-        return self.db.query(self.model).filter(
-            self.model.id == id,
-            self._get_tenant_filter()
-        ).first()
+    def get(self, id: Any, options: List[Any] = None) -> Optional[T]:
+        query = self._get_query()
+        if options:
+            for option in options:
+                query = query.options(option)
+        return query.filter(self.model.id == id).first()
 
-    def list(self, skip: int = 0, limit: int = 100) -> List[T]:
-        return self.db.query(self.model).filter(
-            self._get_tenant_filter()
-        ).offset(skip).limit(limit).all()
+    def list(self, skip: int = 0, limit: int = 100, options: List[Any] = None) -> List[T]:
+        query = self._get_query()
+        if options:
+            for option in options:
+                query = query.options(option)
+        return query.offset(skip).limit(limit).all()
+
+    def count(self) -> int:
+        return self._get_query().count()
 
     def create(self, obj_in: dict) -> T:
-        # Forzar el tenant_id del contexto actual
         tenant_id = get_current_tenant_id()
-        obj_in["tenant_id"] = tenant_id
+        if hasattr(self.model, 'tenant_id') and "tenant_id" not in obj_in:
+            obj_in["tenant_id"] = tenant_id
         
         db_obj = self.model(**obj_in)
         self.db.add(db_obj)

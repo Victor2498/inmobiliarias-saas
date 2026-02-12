@@ -2,7 +2,7 @@ import secrets
 import hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from app.infrastructure.persistence.models import EmailVerificationTokenModel, UserModel
+from app.domain.models.user import EmailVerificationTokenModel, UserModel
 
 class VerificationService:
     @staticmethod

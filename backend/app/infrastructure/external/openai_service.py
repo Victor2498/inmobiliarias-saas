@@ -26,5 +26,7 @@ class OpenAIService:
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"Error OpenAI: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error OpenAI: {e}")
             return "CONSULTA_GENERAL"

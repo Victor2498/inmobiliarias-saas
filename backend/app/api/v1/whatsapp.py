@@ -1,11 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.infrastructure.persistence.models import WhatsAppInstanceModel
 from app.application.services.whatsapp_manager import WhatsAppManagerService
 from app.api.deps import PlanChecker, get_current_user
-from app.services.whatsapp_service import whatsapp_service
-import uuid
 
 router = APIRouter()
 
@@ -31,14 +28,8 @@ async def logout_whatsapp(
     db: Session = Depends(get_db),
     user = Depends(get_current_user)
 ):
-    instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.tenant_id == user.tenant_id).first()
-    if not instance:
-        raise HTTPException(status_code=404, detail="Instancia no encontrada")
+    service = WhatsAppManagerService(db)
+    if await service.logout_whatsapp(user.tenant_id):
+        return {"message": "Sesión cerrada correctamente"}
     
-    success = await whatsapp_service.logout_instance(instance.instance_name)
-    if success:
-        instance.status = "DISCONNECTED"
-        db.commit()
-        return {"message": "Sesion cerrada"}
-    
-    raise HTTPException(status_code=500, detail="Error al cerrar sesion")
+    raise HTTPException(status_code=500, detail="Error al cerrar sesión en el servidor")

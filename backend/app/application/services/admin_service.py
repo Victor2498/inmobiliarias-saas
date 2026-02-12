@@ -2,7 +2,7 @@ import uuid
 import logging
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.infrastructure.persistence.models import TenantModel, UserModel, AuditLogModel
+from app.domain.models.tenant import TenantModel, AuditLogModel
 from app.infrastructure.security import hashing
 
 logger = logging.getLogger(__name__)

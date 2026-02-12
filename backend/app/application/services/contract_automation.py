@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, date
 from sqlalchemy.orm import Session
-from app.infrastructure.persistence.business_models import ContractModel, ChargeModel
+from app.domain.models.business import ContractModel, ChargeModel
 from app.infrastructure.security.tenant_context import get_current_tenant_id
 
 logger = logging.getLogger(__name__)
