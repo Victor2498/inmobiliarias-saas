@@ -145,6 +145,8 @@ class AuthService:
             role=user.role
         )
         
+        tenant = self.db.query(TenantModel).filter(TenantModel.id == user.tenant_id).first() if user.tenant_id else None
+        
         return {
             "access_token": access_token,
             "token_type": "bearer",
@@ -152,7 +154,7 @@ class AuthService:
                 "email": user.email,
                 "role": user.role,
                 "tenant_id": user.tenant_id,
-                "plan": user.tenant.plan if user.tenant else "lite",
+                "plan": tenant.plan if tenant else "lite",
                 "force_password_change": user.force_password_change
             }
         }

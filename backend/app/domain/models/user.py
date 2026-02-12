@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer
+from sqlalchemy.orm import relationship
 from .base import Base
 import datetime
 
@@ -20,6 +21,8 @@ class UserModel(Base):
     locked_until = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    tenant = relationship("TenantModel", backref="users", lazy="joined")
 
 class EmailVerificationTokenModel(Base):
     __tablename__ = "email_verification_tokens"
