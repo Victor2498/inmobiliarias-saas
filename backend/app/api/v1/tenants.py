@@ -24,3 +24,34 @@ def register_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
         admin_full_name=tenant_in.admin_full_name
     )
 
+
+class TenantUpdate(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    plan: str | None = None
+    whatsapp_enabled: bool | None = None
+
+@router.put("/{tenant_id}")
+def update_tenant(
+    tenant_id: str,
+    tenant_in: TenantUpdate,
+    db: Session = Depends(get_db)
+):
+    service = TenantService(db)
+    return service.update_tenant(tenant_id, tenant_in.dict(exclude_unset=True))
+
+@router.post("/{tenant_id}/toggle-status")
+def toggle_tenant_status(
+    tenant_id: str,
+    db: Session = Depends(get_db)
+):
+    service = TenantService(db)
+    return service.toggle_tenant_status(tenant_id)
+
+@router.delete("/{tenant_id}")
+def delete_tenant(
+    tenant_id: str,
+    db: Session = Depends(get_db)
+):
+    service = TenantService(db)
+    return service.delete_tenant(tenant_id)
