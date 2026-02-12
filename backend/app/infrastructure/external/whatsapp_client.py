@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class EvolutionAPIClient:
     def __init__(self):
-        self.url = settings.EVOLUTION_API_URL
+        self.url = settings.EVOLUTION_API_URL.rstrip("/") if settings.EVOLUTION_API_URL else ""
         self.token = settings.EVOLUTION_API_TOKEN
         self.headers = {"apikey": self.token or ""}
 
