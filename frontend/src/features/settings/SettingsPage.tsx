@@ -7,6 +7,10 @@ const SettingsPage: React.FC = () => {
     const { user } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'data'>('profile');
 
+    if (!user) {
+        return <div className="p-8 text-slate-500 font-medium">Cargando perfil...</div>;
+    }
+
     // Security Form
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');

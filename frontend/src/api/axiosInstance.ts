@@ -19,4 +19,17 @@ axiosInstance.interceptors.request.use((config) => {
     return config;
 });
 
+// Interceptor de respuesta para manejar sesiones expiradas
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            const { logout } = useAuthStore.getState();
+            logout();
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default axiosInstance;
