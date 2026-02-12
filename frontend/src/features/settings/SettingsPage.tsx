@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { User, Lock, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Lock, Save, AlertCircle, CheckCircle, Download, Database } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import axiosInstance from '../../api/axiosInstance';
 
 const SettingsPage: React.FC = () => {
     const { user } = useAuthStore();
-    const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'data'>('profile');
 
     // Security Form
     const [currentPassword, setCurrentPassword] = useState('');
@@ -45,6 +44,27 @@ const SettingsPage: React.FC = () => {
         }
     };
 
+    const handleExportData = async () => {
+        try {
+            const response = await axiosInstance.get('/reports/export-movements', {
+                responseType: 'blob',
+            });
+
+            // Create blob link to download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            link.setAttribute('download', `movimientos_inmobiliaria_${date}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Error exportando datos', error);
+            alert("Error al exportar datos. Intente nuevamente.");
+        }
+    };
+
     return (
         <div className="p-6 space-y-8 min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-500">
             <header>
@@ -52,7 +72,7 @@ const SettingsPage: React.FC = () => {
                     Ajustes de Inmobiliaria
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
-                    Gestiona tu perfil y seguridad de la cuenta.
+                    Gestiona tu perfil, seguridad y datos de la cuenta.
                 </p>
             </header>
 
@@ -76,6 +96,15 @@ const SettingsPage: React.FC = () => {
                             }`}
                     >
                         <Lock size={20} /> Seguridad
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('data')}
+                        className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 font-semibold transition-all ${activeTab === 'data'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                            }`}
+                    >
+                        <Database size={20} /> Datos y Backup
                     </button>
                 </div>
 
@@ -169,6 +198,38 @@ const SettingsPage: React.FC = () => {
                                     {loading ? 'Actualizando...' : 'Guardar Cambios'} <Save size={20} />
                                 </button>
                             </form>
+                        </div>
+                    )}
+
+                    {activeTab === 'data' && (
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
+                            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                <Database className="text-blue-500" /> Exportación de Datos y Backup
+                            </h2>
+                            <p className="text-slate-500 dark:text-slate-400 mb-8">
+                                Descarga un historial completo de tus movimientos financieros (Cobros y Liquidaciones) en formato CSV.
+                                Utiliza este archivo para realizar copias de seguridad externas o para análisis en Excel.
+                            </p>
+
+                            <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">Historial Financiero Completo</h3>
+                                    <p className="text-sm text-slate-500">Incluye fechas, conceptos, montos y métodos de todos los movimientos.</p>
+                                </div>
+                                <button
+                                    onClick={handleExportData}
+                                    className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all hover:scale-105"
+                                >
+                                    <Download size={20} /> Exportar CSV
+                                </button>
+                            </div>
+
+                            <div className="mt-8 p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30 rounded-xl text-orange-800 dark:text-orange-200 text-sm flex gap-3">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <p>
+                                    Nota: Si planeas dar de baja tu cuenta, te recomendamos descargar este archivo para conservar tu historial operativo.
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

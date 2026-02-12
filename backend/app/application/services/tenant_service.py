@@ -107,21 +107,50 @@ class TenantService:
         if not tenant:
             raise HTTPException(status_code=404, detail="Inmobiliaria no encontrada")
         
-        # Soft delete logic: mark as inactive and maybe rename to avoid constraint collisions?
-        # Or Just Hard Delete if no constraints prevent it? 
-        # User requested "Eliminar". 
-        # Let's try Hard Delete first, if it fails due to FKs, we might need a cascading delete or soft delete.
-        # Given "Maintaining good logic", Hard Delete of a Tenant with data is dangerous.
-        # We will implement a "Soft Delete" by marking is_active=False and appending "_DELETED" to name/email to allow reuse?
-        # No, let's just delete the record for now as per simple CRUD, assuming cascade is configured or we want to block if data exists.
-        # Actually, let's just delete the TenantModel entry.
-        
         try:
+            # FORCE DELETE LOGIC: Manually delete related records to avoid FK constraints
+            # 1. Delete Financial/Operational Records
+            # Liquidations & Items
+            from app.domain.models.billing import LiquidationModel, LiquidationItemModel
+            self.db.query(LiquidationItemModel).filter(LiquidationItemModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(LiquidationModel).filter(LiquidationModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # Payments & Charges
+            from app.domain.models.business import PaymentModel, ChargeModel
+            self.db.query(PaymentModel).filter(PaymentModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(ChargeModel).filter(ChargeModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # Contracts
+            from app.domain.models.business import ContractModel
+            self.db.query(ContractModel).filter(ContractModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # 2. Delete Core Business Entities
+            # Properties & People
+            from app.domain.models.business import PropertyModel, PersonModel
+            self.db.query(PropertyModel).filter(PropertyModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(PersonModel).filter(PersonModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # 3. Delete System/Platform Entities
+            # WhatsApp
+            from app.domain.models.whatsapp import WhatsAppInstanceModel, WhatsAppSessionModel, WhatsAppMessageModel
+            self.db.query(WhatsAppMessageModel).filter(WhatsAppMessageModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(WhatsAppSessionModel).filter(WhatsAppSessionModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # Users & Audit
+            from app.domain.models.user import UserModel
+            from app.domain.models.tenant import AuditLogModel
+            self.db.query(AuditLogModel).filter(AuditLogModel.tenant_id == tenant_id).delete(synchronize_session=False)
+            self.db.query(UserModel).filter(UserModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # 4. Finally Delete Tenant
             self.db.delete(tenant)
             self.db.commit()
-            logger.info(f"🗑️ Inmobiliaria eliminada: {tenant.name} ({tenant_id})")
-            return {"message": "Inmobiliaria eliminada correctamente"}
+            
+            logger.info(f"🔥 Inmobiliaria ELIMINADA (Force Delete): {tenant.name} ({tenant_id})")
+            return {"message": "Inmobiliaria y todos sus datos eliminados permanentemente"}
+
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Error eliminando inmobiliaria: {e}")
-            raise HTTPException(status_code=400, detail="No se puede eliminar: tiene datos asociados.")
+            logger.error(f"Error fatal eliminando inmobiliaria: {e}")
+            raise HTTPException(status_code=500, detail=f"Error crítico eliminando datos: {str(e)}")

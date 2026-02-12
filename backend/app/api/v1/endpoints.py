@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-from app.api.v1 import auth, tenants, properties, webhooks, whatsapp, people, contracts, admin, payments, liquidations
+from app.api.v1 import auth, tenants, properties, webhooks, whatsapp, people, contracts, admin, payments, liquidations, reports
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -12,3 +11,4 @@ api_router.include_router(people.router, prefix="/people", tags=["people"])
 api_router.include_router(contracts.router, prefix="/contracts", tags=["contracts"])
 api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
 api_router.include_router(liquidations.router, prefix="/liquidations", tags=["liquidations"])
+api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
