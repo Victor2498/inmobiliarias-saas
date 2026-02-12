@@ -44,7 +44,7 @@ class TenantService:
             full_name=admin_full_name,
             role="INMOBILIARIA_ADMIN",
             is_active=True,
-            email_verified=False # Requires verification
+            email_verified=True # Auto-verificado para pruebas
         )
         self.db.add(new_admin)
         self.db.flush() # Generate ID for new_admin

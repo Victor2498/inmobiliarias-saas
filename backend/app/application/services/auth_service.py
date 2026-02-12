@@ -21,10 +21,22 @@ class AuthService:
         Maneja el login de Inmobiliarias.
         Busca usuario asociado o fallback a modelo Tenant legacy.
         """
-        # 1. Buscamos usuario (Admin de la inmobiliaria)
+        # 1. Buscamos usuario (Admin de la inmobiliaria) por Email, Username o Nombre de Inmobiliaria
         user = self.db.query(UserModel).filter(
-            or_(UserModel.email == data.nombre_inmobiliaria, UserModel.username == data.nombre_inmobiliaria)
+            or_(
+                UserModel.email == data.nombre_inmobiliaria,
+                UserModel.username == data.nombre_inmobiliaria
+            )
         ).first()
+
+        # Si no lo encontramos, intentamos buscar si el identificador es el nombre de la inmobiliaria
+        if not user:
+            tenant = self.db.query(TenantModel).filter(TenantModel.name == data.nombre_inmobiliaria).first()
+            if tenant:
+                user = self.db.query(UserModel).filter(
+                    UserModel.tenant_id == tenant.id,
+                    UserModel.role == "INMOBILIARIA_ADMIN"
+                ).first()
 
         if user:
             return self._process_user_login(user, data.password)
