@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from app.domain.models.tenant import TenantModel
 from app.domain.models.business import ChargeModel, PaymentModel
+from app.infrastructure.persistence.repository import BaseRepository
 from app.application.services.mercado_pago import MercadoPagoService
 
 logger = logging.getLogger(__name__)
