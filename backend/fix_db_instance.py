@@ -8,28 +8,17 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-print(f"Directorio de trabajo: {os.getcwd()}")
-print(f"Sys Path: {sys.path}")
-
 try:
-    if not os.path.exists(os.path.join(current_dir, "app")):
-        print("❌ ALERTA: No encuentro la carpeta 'app' en el directorio actual.")
-        print("Contenido actual:", os.listdir(current_dir))
-    
-    # Verificar si app es un paquete
-    if not os.path.exists(os.path.join(current_dir, "app", "__init__.py")):
-        print("⚠️ ALERTA: 'app' no tiene __init__.py. Python no lo detectará como paquete.")
-        print("Contenido de 'app':", os.listdir(os.path.join(current_dir, "app")))
-
-    from app.infrastructure.database.connection import SessionLocal
+    # Imports corregidos basados en la estructura real del proyecto
+    from app.core.database import SessionLocal
     from app.domain.models.tenant import WhatsAppInstanceModel, TenantModel
     from app.domain.models.whatsapp import WhatsAppMessageModel
     import uuid
 except ImportError as e:
-    print(f"❌ Error de Importación Crítico: {e}")
-    print("Contenido del directorio:", os.listdir(current_dir))
-    if os.path.exists(os.path.join(current_dir, "app")):
-         print("Contenido de 'app':", os.listdir(os.path.join(current_dir, "app")))
+    print(f"❌ Error de Importación: {e}")
+    # Fallback debug si sigue fallando
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 
 def fix_db():
