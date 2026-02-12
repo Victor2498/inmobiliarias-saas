@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Building2,
@@ -17,6 +18,7 @@ import WhatsAppPanel from './WhatsAppPanel';
 import SecuritySettingsPanel from './SecuritySettingsPanel';
 import SecurityCenter from './SecurityCenter';
 import { Settings } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 
 interface SidebarItemProps {
     icon: any;
@@ -41,6 +43,15 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, active, on
 
 const AdminLayout: React.FC = () => {
     const [activeTab, setActiveTab] = useState('tenants');
+    // const navigate = useNavigate();
+    const logout = useAuthStore((state) => state.logout);
+
+    const handleLogout = () => {
+        console.log("Logout clicked");
+        // alert("Cerrando sesión..."); // Debug
+        logout();
+        window.location.href = '/login';
+    };
 
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard General', icon: LayoutDashboard },
@@ -93,8 +104,11 @@ const AdminLayout: React.FC = () => {
                     ))}
                 </nav>
 
-                <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                    <button className="w-full flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 rounded-2xl transition-all font-bold text-sm">
+                <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2 relative z-50">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 rounded-2xl transition-all font-bold text-sm relative z-50 cursor-pointer"
+                    >
                         <LogOut className="w-5 h-5" />
                         <span>Cerrar Sesión</span>
                     </button>
