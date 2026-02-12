@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Request, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.domain.models.whatsapp import WhatsAppMessageModel, WhatsAppSessionModel
+from app.domain.models.whatsapp import WhatsAppMessageModel
+from app.domain.models.tenant import WhatsAppInstanceModel
 from app.infrastructure.external.openai_service import OpenAIService
 import logging
 import datetime
@@ -39,11 +40,12 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
         
         if content and not from_me:
             instance_name = data.get("instance")
-            session = db.query(WhatsAppSessionModel).filter(WhatsAppSessionModel.instance_name == instance_name).first()
+            # Buscar la instancia vinculada a la inmobiliaria
+            instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.instance_name == instance_name).first()
             
-            if session:
+            if instance:
                 new_msg = WhatsAppMessageModel(
-                    tenant_id=session.tenant_id,
+                    tenant_id=instance.tenant_id,
                     remote_jid=remote_jid,
                     from_me=from_me,
                     content=content,
