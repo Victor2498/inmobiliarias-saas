@@ -5,8 +5,7 @@ import PropertyList from './features/properties/PropertyList';
 import AuthGuard from './features/auth/AuthGuard';
 import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
-import ContractList from './features/contracts/ContractList';
-import ChargeList from './features/billing/ChargeList';
+import TenantManagement from './features/billing/TenantManagement';
 import LiquidationWizard from './features/billing/LiquidationWizard';
 import SaaSPlans from './features/subscription/SaaSPlans';
 import LoginPage from './features/auth/LoginPage';
@@ -34,8 +33,10 @@ const App: React.FC = () => {
                 <Route path="/properties" element={<PropertyList />} />
                 <Route path="/whatsapp" element={<WhatsAppDashboard />} />
                 <Route path="/people" element={<PeopleList />} />
-                <Route path="/contracts" element={<ContractList />} />
-                <Route path="/billing" element={<ChargeList />} />
+
+                {/* Gestión Unificada de Inquilinos (Contratos + Liquidaciones) */}
+                <Route path="/multitenant" element={<TenantManagement />} />
+
                 <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
