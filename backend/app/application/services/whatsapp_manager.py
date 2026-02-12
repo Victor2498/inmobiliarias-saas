@@ -32,7 +32,17 @@ class WhatsAppManagerService:
         instance_name = f"tenant_{tenant_id}"
 
         if not instance:
-            await whatsapp_client.create_instance(instance_name)
+            # Crear instancia en Evolution API
+            creation_result = await whatsapp_client.create_instance(instance_name)
+            if not creation_result:
+                raise HTTPException(
+                    status_code=503,
+                    detail="No se pudo crear la instancia en Evolution API. Verifique que el servicio esté en línea y correctamente configurado."
+                )
+            
+            logger.info(f"✅ Instancia creada en Evolution API: {instance_name}")
+            
+            # Guardar en base de datos
             instance = self.repo.create({
                 "id": str(uuid.uuid4())[:8],
                 "tenant_id": tenant_id,

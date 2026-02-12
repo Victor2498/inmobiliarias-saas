@@ -18,7 +18,7 @@ class EvolutionAPIClient:
 
         url = f"{self.url}/{path.lstrip('/')}"
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:  # Aumentado a 30s para creación de instancias
                 resp = await client.request(method, url, headers=self.headers, **kwargs)
                 
                 if resp.status_code >= 400:
@@ -37,8 +37,8 @@ class EvolutionAPIClient:
     async def create_instance(self, name: str):
         data = {
             "instanceName": name,
-            "token": "admin123", # Token interno opcional
-            "qrcode": True
+            "qrcode": True,
+            "integration": "WHATSAPP-BAILEYS"  # Requerido para Evolution API v2
         }
         return await self._safe_request("POST", "/instance/create", json=data)
 
