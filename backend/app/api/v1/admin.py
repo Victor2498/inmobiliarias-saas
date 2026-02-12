@@ -6,6 +6,8 @@ from app.infrastructure.persistence.models import TenantModel, UserModel
 from app.api.v1.schemas import TenantCreate, TenantUpdate, TenantResponse
 from app.application.services.admin_service import AdminService
 from app.api.deps import RoleChecker, get_current_user
+from app.services.whatsapp_service import whatsapp_service
+import httpx
 
 router = APIRouter()
 admin_only = RoleChecker(["SUPERADMIN"])
@@ -81,3 +83,48 @@ def get_all_whatsapp_instances(
 ):
     from app.infrastructure.persistence.models import WhatsAppInstanceModel
     return db.query(WhatsAppInstanceModel).all()
+
+@router.get("/whatsapp/health")
+async def get_whatsapp_health(_ = Depends(admin_only)):
+    try:
+        async with httpx.AsyncClient() as client:
+            # Evolution API suele tener un endpoint /instance/fetchInstances o similar para health
+            response = await client.get(f"{whatsapp_service.base_url}/instance/fetchInstances", headers=whatsapp_service.headers)
+            return {"status": "online" if response.status_code == 200 else "offline", "code": response.status_code}
+    except Exception:
+        return {"status": "offline"}
+
+@router.post("/whatsapp/instances/{instance_id}/sync")
+async def sync_whatsapp_instance(
+    instance_id: str, 
+    db: Session = Depends(get_db), 
+    _ = Depends(admin_only)
+):
+    from app.infrastructure.persistence.models import WhatsAppInstanceModel
+    instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.id == instance_id).first()
+    if not instance:
+        raise HTTPException(status_code=404, detail="Instancia no encontrada")
+    
+    status = await whatsapp_service.get_instance_status(instance.instance_name)
+    instance.status = status
+    db.commit()
+    return {"status": status}
+
+@router.delete("/whatsapp/instances/{instance_id}")
+async def delete_whatsapp_instance(
+    instance_id: str, 
+    db: Session = Depends(get_db), 
+    _ = Depends(admin_only)
+):
+    from app.infrastructure.persistence.models import WhatsAppInstanceModel
+    instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.id == instance_id).first()
+    if not instance:
+        raise HTTPException(status_code=404, detail="Instancia no encontrada")
+    
+    # Eliminar de Evolution API
+    await whatsapp_service.delete_instance(instance.instance_name)
+    
+    # Eliminar de la DB
+    db.delete(instance)
+    db.commit()
+    return {"message": "Instancia eliminada correctamente"}

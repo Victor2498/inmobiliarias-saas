@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
     MessageSquare,
     Server,
-    Activity,
     CheckCircle2,
     XCircle,
     RefreshCcw,
     Settings,
-    ShieldCheck,
     Zap,
-    Globe
+    Globe,
+    AlertCircle
 } from 'lucide-react';
 import axiosInstance from '../../api/axiosInstance';
 
@@ -25,7 +24,7 @@ interface WhatsAppInstance {
 const WhatsAppPanel: React.FC = () => {
     const [instances, setInstances] = useState<WhatsAppInstance[]>([]);
     const [serverStatus, setServerStatus] = useState<'online' | 'offline'>('online');
-    const [loading, setLoading] = useState(true);
+    const [syncingId, setSyncingId] = useState<string | null>(null);
 
     const fetchInstances = async () => {
         try {
@@ -33,13 +32,45 @@ const WhatsAppPanel: React.FC = () => {
             setInstances(res.data);
         } catch (err) {
             console.error("Error fetching instances", err);
+        }
+    };
+
+    const fetchServerStatus = async () => {
+        try {
+            const res = await axiosInstance.get('/admin/whatsapp/health');
+            setServerStatus(res.data.status);
+        } catch (err) {
+            setServerStatus('offline');
+        }
+    };
+
+    const syncInstance = async (id: string) => {
+        setSyncingId(id);
+        try {
+            await axiosInstance.post(`/admin/whatsapp/instances/${id}/sync`);
+            await fetchInstances();
+        } catch (err) {
+            console.error("Error syncing instance", err);
         } finally {
-            setLoading(false);
+            setSyncingId(null);
+        }
+    };
+
+    const deleteInstance = async (id: string) => {
+        if (!window.confirm("¿Estás seguro de eliminar esta instancia? Se borrará de Evolution API y de la DB.")) return;
+        try {
+            await axiosInstance.delete(`/admin/whatsapp/instances/${id}`);
+            await fetchInstances();
+        } catch (err) {
+            console.error("Error deleting instance", err);
         }
     };
 
     useEffect(() => {
         fetchInstances();
+        fetchServerStatus();
+        const interval = setInterval(fetchServerStatus, 30000); // Check cada 30s
+        return () => clearInterval(interval);
     }, []);
 
     const connectedCount = instances.filter(i => i.status === 'CONNECTED').length;
@@ -148,7 +179,7 @@ const WhatsAppPanel: React.FC = () => {
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${instance.status === 'CONNECTED' ? 'bg-green-500/10 text-green-500' :
-                                                    instance.status === 'ERROR' ? 'bg-red-500/10 text-red-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                                                instance.status === 'ERROR' ? 'bg-red-500/10 text-red-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                                                 }`}>
                                                 {instance.status}
                                             </span>
@@ -158,10 +189,19 @@ const WhatsAppPanel: React.FC = () => {
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg text-blue-600 transition-all" title="Reiniciar">
+                                                <button
+                                                    onClick={() => syncInstance(instance.id)}
+                                                    disabled={syncingId === instance.id}
+                                                    className={`p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg text-blue-600 transition-all ${syncingId === instance.id ? 'animate-spin opacity-50' : ''}`}
+                                                    title="Sincronizar Estado"
+                                                >
                                                     <RefreshCcw className="w-4 h-4" />
                                                 </button>
-                                                <button className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-600 transition-all" title="Eliminar">
+                                                <button
+                                                    onClick={() => deleteInstance(instance.id)}
+                                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-red-600 transition-all"
+                                                    title="Eliminar Instancia"
+                                                >
                                                     <XCircle className="w-4 h-4" />
                                                 </button>
                                             </div>
