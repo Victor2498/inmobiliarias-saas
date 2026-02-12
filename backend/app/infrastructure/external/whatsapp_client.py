@@ -82,5 +82,14 @@ class EvolutionAPIClient:
         resp = await self._safe_request("POST", f"/instance/logout/{name}")
         return resp is not None
 
+    async def send_message(self, instance_name: str, number: str, text: str):
+        """Envía un mensaje de texto a un número específico."""
+        data = {
+            "number": number,
+            "options": {"delay": 1200, "presence": "composing", "linkPreview": False},
+            "textMessage": {"text": text}
+        }
+        return await self._safe_request("POST", f"/message/sendText/{instance_name}", json=data)
+
 # Export instance for use as singleton
 whatsapp_client = EvolutionAPIClient()
