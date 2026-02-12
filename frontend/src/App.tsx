@@ -7,6 +7,7 @@ import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
 import ContractList from './features/contracts/ContractList';
 import ChargeList from './features/billing/ChargeList';
+import LiquidationWizard from './features/billing/LiquidationWizard';
 import SaaSPlans from './features/subscription/SaaSPlans';
 import LoginPage from './features/auth/LoginPage';
 import VerifyEmail from './features/auth/VerifyEmail';
@@ -35,6 +36,7 @@ const App: React.FC = () => {
                 <Route path="/people" element={<PeopleList />} />
                 <Route path="/contracts" element={<ContractList />} />
                 <Route path="/billing" element={<ChargeList />} />
+                <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
               </Route>

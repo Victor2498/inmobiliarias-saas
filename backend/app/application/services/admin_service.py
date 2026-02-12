@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.domain.models.tenant import TenantModel, AuditLogModel
+from app.domain.models.user import UserModel
 from app.infrastructure.security import hashing
 
 logger = logging.getLogger(__name__)
@@ -31,13 +32,26 @@ class AdminService:
         db.add(new_tenant)
         db.flush() # Force ID creation for AuditLog FK
         
-        # 3. Registrar en Auditoría
+        # 3. Crear Usuario Administrador para el Tenant
+        new_admin = UserModel(
+            tenant_id=tenant_id,
+            email=email,
+            hashed_password=hashing.get_password_hash(password),
+            full_name=f"Admin {name}",
+            role="INMOBILIARIA_ADMIN",
+            is_active=True,
+            email_verified=True # Creado por SuperAdmin
+        )
+        db.add(new_admin)
+        db.flush()
+
+        # 4. Registrar en Auditoría
         AdminService.log_action(
             db, 
             actor_id=actor_id, 
             tenant_id=tenant_id, 
             action="CREATE_TENANT", 
-            details={"name": name, "plan": plan}
+            details={"name": name, "plan": plan, "admin_email": email}
         )
         
         db.commit()

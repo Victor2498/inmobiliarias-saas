@@ -50,6 +50,10 @@ class ContractModel(Base):
     property = relationship("PropertyModel", back_populates="contracts")
     person = relationship("PersonModel", back_populates="contracts")
     charges = relationship("ChargeModel", back_populates="contract")
+    
+    # New relationships for Liquidations module
+    liquidations = relationship("LiquidationModel", back_populates="contract")
+    concepts = relationship("ContractConceptModel", back_populates="contract")
 
 class ChargeModel(Base):
     __tablename__ = "charges"
