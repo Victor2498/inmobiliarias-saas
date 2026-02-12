@@ -14,7 +14,7 @@ class AIAgentService:
         """
         try:
             # 1. Recuperar mensaje y validar plan
-            from app.infrastructure.persistence.models import TenantModel
+            from app.domain.models.tenant import TenantModel
             
             message = db.query(WhatsAppMessageModel).filter(WhatsAppMessageModel.id == message_id).first()
             if not message:
