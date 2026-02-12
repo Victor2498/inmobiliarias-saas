@@ -66,6 +66,9 @@ class Settings(BaseSettings):
     EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
     EVOLUTION_API_TOKEN: str | None = os.getenv("EVOLUTION_API_TOKEN")
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
+
+    # URL interna para que Evolution API nos contacte (Webhook)
+    WEBHOOK_URL_OVERRIDE: str | None = os.getenv("WEBHOOK_URL_OVERRIDE")
     
     # Mercado Pago
     MP_ACCESS_TOKEN: str | None = os.getenv("MP_ACCESS_TOKEN")
