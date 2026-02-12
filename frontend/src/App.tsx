@@ -8,6 +8,7 @@ import PeopleList from './features/people/PeopleList';
 import TenantManagement from './features/billing/TenantManagement';
 import LiquidationWizard from './features/billing/LiquidationWizard';
 import SaaSPlans from './features/subscription/SaaSPlans';
+import SettingsPage from './features/settings/SettingsPage';
 import LoginPage from './features/auth/LoginPage';
 import VerifyEmail from './features/auth/VerifyEmail';
 import AdminLayout from './features/admin/AdminLayout';
@@ -39,6 +40,7 @@ const App: React.FC = () => {
 
                 <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
               </Route>
             </Route>
