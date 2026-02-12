@@ -32,6 +32,12 @@ class WhatsAppManagerService:
             })
 
         qr = await whatsapp_client.get_qr_code(instance_name)
+        if not qr:
+            raise HTTPException(
+                status_code=503, 
+                detail="No se pudo obtener el código QR. Verifique que la API de WhatsApp esté en línea y el token sea correcto."
+            )
+            
         return {"qr": qr, "status": "QR_PENDING"}
 
     async def sync_status(self, tenant_id: str) -> dict:
