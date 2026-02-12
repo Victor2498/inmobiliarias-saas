@@ -60,7 +60,12 @@ def fix_db():
 
         # 4. Ver si llegaron mensajes (aunque no se procesaron)
         print("\n--- Auditar Mensajes ---")
-        msgs = db.query(WhatsAppMessageModel).filter(WhatsAppMessageModel.tenant_id == tenant_id).order_by(WhatsAppMessageModel.created_at.desc()).limit(5).all()
+        if hasattr(WhatsAppMessageModel, 'created_at'):
+             order_field = WhatsAppMessageModel.created_at
+        else:
+             order_field = WhatsAppMessageModel.timestamp
+
+        msgs = db.query(WhatsAppMessageModel).filter(WhatsAppMessageModel.tenant_id == tenant_id).order_by(order_field.desc()).limit(5).all()
         if msgs:
             print(f"Últimos {len(msgs)} mensajes guardados:")
             for m in msgs:
