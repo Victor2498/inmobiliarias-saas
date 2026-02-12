@@ -338,9 +338,8 @@ interface TenantTableProps {
     onDelete?: (tenant: Tenant) => void;
 }
 
-const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete }: TenantTableProps) => {
-    const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
 
+const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete }: TenantTableProps) => {
     return (
         <div className="overflow-x-auto pb-20">
             <table className="w-full text-left border-collapse">
@@ -385,42 +384,38 @@ const TenantTable = ({ tenants, compact, onEdit, onToggleStatus, onDelete }: Ten
                                     {t.whatsapp_enabled ? <MessageSquare className="w-4 h-4 text-green-500" /> : <div className="w-4 h-4 bg-slate-200 rounded-full"></div>}
                                 </td>
                             )}
-                            <td className="py-4 text-right pr-4 relative">
-                                <button
-                                    onClick={() => setActionMenuOpen(actionMenuOpen === t.id ? null : t.id)}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-                                >
-                                    <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                                </button>
-
-                                {actionMenuOpen === t.id && !compact && onEdit && (
-                                    <div className="absolute right-10 top-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl p-2 z-10 w-48 text-left">
+                            <td className="py-4 text-right pr-4">
+                                <div className="flex justify-end items-center space-x-2">
+                                    {onEdit && (
                                         <button
-                                            onClick={() => { onEdit(t); setActionMenuOpen(null); }}
-                                            className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-300"
+                                            onClick={() => onEdit(t)}
+                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-blue-600"
+                                            title="Editar"
                                         >
-                                            <Edit size={16} /> Editar Datos
+                                            <Edit className="w-4 h-4" />
                                         </button>
+                                    )}
 
-                                        {onToggleStatus && (
-                                            <button
-                                                onClick={() => { onToggleStatus(t); setActionMenuOpen(null); }}
-                                                className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-sm font-semibold flex items-center gap-2 ${t.is_active ? 'text-orange-500' : 'text-green-500'}`}
-                                            >
-                                                <Power size={16} /> {t.is_active ? 'Suspender' : 'Reactivar'}
-                                            </button>
-                                        )}
+                                    {onToggleStatus && (
+                                        <button
+                                            onClick={() => onToggleStatus(t)}
+                                            className={`p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ${t.is_active ? 'text-green-500 hover:text-orange-500' : 'text-red-500 hover:text-green-500'}`}
+                                            title={t.is_active ? "Suspender" : "Activar"}
+                                        >
+                                            <Power className="w-4 h-4" />
+                                        </button>
+                                    )}
 
-                                        {onDelete && (
-                                            <button
-                                                onClick={() => { onDelete(t); setActionMenuOpen(null); }}
-                                                className="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm font-semibold flex items-center gap-2 text-red-500"
-                                            >
-                                                <Trash2 size={16} /> Eliminar
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
+                                    {onDelete && !compact && (
+                                        <button
+                                            onClick={() => onDelete(t)}
+                                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-slate-400 hover:text-red-600"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </td>
                         </tr>
                     ))}
