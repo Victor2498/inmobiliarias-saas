@@ -159,6 +159,8 @@ class AuthService:
             role=user.role
         )
         
+        # Build Marker v1.0.2 - Fix AttributeError Manual Query
+        logger.info(f"🔑 Procesando login final para: {user.email}")
         tenant = self.db.query(TenantModel).filter(TenantModel.id == user.tenant_id).first() if user.tenant_id else None
         
         return {
