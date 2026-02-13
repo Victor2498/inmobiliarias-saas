@@ -23,17 +23,17 @@ async def audit_webhook_token(request: Request):
 @router.post("/evolution")
 async def evolution_webhook(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if not await audit_webhook_token(request):
+        print(f"⚠️ WEBHOOK UNAUTHORIZED: {request.query_params.get('token')}")
         return {"status": "unauthorized"}
 
     data = await request.json()
     event = data.get("event")
     instance_name = data.get("instance")
     
-    logger.info(f"🔔 WEBHOOK REBICEIDO - Event: {event} | Instance: {instance_name}")
-    logger.info(f"📦 FULL DATA: {data}")
+    print(f"🔔 WEBHOOK RECIBIDO - Event: {event} | Instance: {instance_name}")
     
     if event == "MESSAGES_UPSERT":
-        logger.info(f"DEBUG FULL PAYLOAD: {data}")
+        print(f"📦 DATA: {data}")
         message_data = data.get("data", {})
         key = message_data.get("key", {})
         message = message_data.get("message", {})
@@ -48,15 +48,14 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
             message.get("imageMessage", {}).get("caption")
         )
         
-        logger.info(f"MSG DATA: JID={remote_jid} | FromMe={from_me} | Content={content} | Instance={data.get('instance')}")
+        print(f"💬 MSG: JID={remote_jid} | FromMe={from_me} | Content='{content}'")
 
         if content and not from_me:
-            instance_name = data.get("instance")
             # Buscar la instancia vinculada a la inmobiliaria
             instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.instance_name == instance_name).first()
             
             if instance:
-                logger.info(f"✅ Instancia encontrada en BD: {instance.id} (Tenant: {instance.tenant_id}). Guardando mensaje...")
+                print(f"✅ Instancia coincide: {instance.id}. Guardando...")
                 try:
                     new_msg = WhatsAppMessageModel(
                         tenant_id=instance.tenant_id,
@@ -68,17 +67,18 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
                     db.add(new_msg)
                     db.commit()
                     db.refresh(new_msg)
-                    logger.info(f"💾 Mensaje guardado ID: {new_msg.id}")
+                    print(f"💾 Guardado con éxito. ID: {new_msg.id}")
                     
                     # Delegar a la capa de Aplicacion asincronamente
                     background_tasks.add_task(AIAgentService.process_incoming_message, db, new_msg.id, content)
                 except Exception as e:
-                    logger.error(f"❌ Error guardando mensaje: {e}")
+                    print(f"❌ Error al guardar en BD: {e}")
                     db.rollback()
             else:
-                logger.error(f"❌ Instancia '{instance_name}' NO encontrada en BD local. Ver instancias registradas:")
-                all_instances = db.query(WhatsAppInstanceModel).all()
-                for i in all_instances:
-                    logger.info(f"   BD Instance: '{i.instance_name}'")
+                print(f"❌ ERROR: Instancia '{instance_name}' no existe en nuestra BD.")
+                # Loggear lo que tenemos para comparar
+                insts = db.query(WhatsAppInstanceModel).all()
+                for i in insts:
+                    print(f"   - BD registra: '{i.instance_name}'")
 
     return {"status": "received"}
