@@ -3,10 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 from app.api.middleware import TenantMiddleware
 from app.core.config import settings
 from app.api.v1.endpoints import api_router
 from app.core.bootstrap import bootstrap_system
+
+# Configuración de Logs con Rotación
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+handler = RotatingFileHandler("logs/app.log", maxBytes=10*1024*1024, backupCount=5)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.PROJECT_NAME, version="1.0.1")

@@ -124,4 +124,14 @@ async def delete_whatsapp_instance(
     # Eliminar de la DB
     db.delete(instance)
     db.commit()
-    return {"message": "Instancia eliminada correctamente"}
+@router.delete("/tenants/{tenant_id}/force")
+def force_delete_tenant(
+    tenant_id: str,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
+    _ = Depends(admin_only)
+):
+    success, error = AdminService.delete_tenant_force(db, tenant_id, actor_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=400, detail=error)
+    return {"message": "Inmobiliaria y todos sus datos han sido eliminados permanentemente"}

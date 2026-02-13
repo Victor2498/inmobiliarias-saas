@@ -40,6 +40,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
     const [editPlan, setEditPlan] = useState('');
     const [editWhatsApp, setEditWhatsApp] = useState(false);
 
+    // Force Delete state
+    const [showForceDelete, setShowForceDelete] = useState(false);
+    const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
+    const [confirmName, setConfirmName] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const fetchTenants = async () => {
         try {
             const res = await axiosInstance.get('/admin/');
@@ -121,12 +127,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
     };
 
     const handleDeleteTenant = async (tenant: Tenant) => {
-        if (!confirm(`⚠️ ¿ESTÁS SEGURO? Eliminar a ${tenant.name} borrará acceso y datos. Esta acción no se puede deshacer.`)) return;
+        setTenantToDelete(tenant);
+        setConfirmName('');
+        setShowForceDelete(true);
+    };
+
+    const handleConfirmForceDelete = async () => {
+        if (!tenantToDelete || confirmName !== tenantToDelete.name) return;
+
+        setIsDeleting(true);
         try {
-            await axiosInstance.delete(`/tenants/${tenant.id}`);
+            await axiosInstance.delete(`/admin/tenants/${tenantToDelete.id}/force`);
+            setShowForceDelete(false);
+            setTenantToDelete(null);
             fetchTenants();
-        } catch (err) {
-            alert('Error al eliminar inmobiliaria');
+        } catch (err: any) {
+            alert(err.response?.data?.detail || 'Error al eliminar inmobiliaria forzosamente');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -331,6 +349,64 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                                     </button>
                                 </div>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal de Eliminación Forzosa */}
+            <AnimatePresence>
+                {showForceDelete && tenantToDelete && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/30 p-8 rounded-[2.5rem] w-full max-w-lg shadow-2xl"
+                        >
+                            <div className="flex items-center gap-4 text-red-600 mb-6">
+                                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-2xl">
+                                    <AlertTriangle size={32} />
+                                </div>
+                                <h2 className="text-2xl font-black">Eliminación Forzosa</h2>
+                            </div>
+
+                            <div className="space-y-4 mb-8">
+                                <p className="text-slate-600 dark:text-slate-400 font-medium">
+                                    Estás a punto de eliminar permanentemente a <span className="font-bold text-slate-900 dark:text-white">{tenantToDelete.name}</span>.
+                                </p>
+                                <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100 dark:border-red-900/20">
+                                    <p className="text-red-700 dark:text-red-400 text-sm font-bold">
+                                        ⚠️ ATENCIÓN: Esta acción es irreversible. Se eliminarán todas las propiedades, contratos, clientes y registros históricos.
+                                    </p>
+                                </div>
+                                <p className="text-sm text-slate-500">
+                                    Para confirmar, escribe el nombre de la inmobiliaria exactamente:
+                                </p>
+                                <input
+                                    type="text"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 outline-none focus:ring-2 ring-red-500 font-bold"
+                                    placeholder={tenantToDelete.name}
+                                    value={confirmName}
+                                    onChange={(e) => setConfirmName(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={handleConfirmForceDelete}
+                                    disabled={confirmName !== tenantToDelete.name || isDeleting}
+                                    className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? "Eliminando..." : <><Trash2 size={20} /> Confirmar Eliminación Total</>}
+                                </button>
+                                <button
+                                    onClick={() => { setShowForceDelete(false); setTenantToDelete(null); }}
+                                    className="w-full py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-slate-600 dark:text-slate-400"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './features/dashboard/DashboardLayout';
+import DashboardHome from './features/dashboard/DashboardHome';
 import PropertyList from './features/properties/PropertyList';
 import AuthGuard from './features/auth/AuthGuard';
 import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
@@ -30,7 +31,7 @@ const App: React.FC = () => {
             <Route element={<AuthGuard />}>
               <Route path="/admin" element={<AdminLayout />} />
               <Route element={<DashboardLayout />}>
-                <Route path="/dashboard" element={<div className="p-6 text-2xl font-bold">Bienvenido al Dashboard</div>} />
+                <Route path="/dashboard" element={<DashboardHome />} />
                 <Route path="/properties" element={<PropertyList />} />
                 <Route path="/whatsapp" element={<WhatsAppDashboard />} />
                 <Route path="/people" element={<PeopleList />} />
