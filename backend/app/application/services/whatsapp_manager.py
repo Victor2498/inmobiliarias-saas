@@ -31,7 +31,9 @@ class WhatsAppManagerService:
         
         # Priorizar nombre de instancia desde configuracion si existe
         from app.core.config import settings
-        instance_name = settings.INSTANCE_NAME or f"tenant_{tenant_id}"
+        # Generar un nombre de instancia único por tenant usando el prefijo configurado
+        prefix = settings.INSTANCE_NAME or "Inmonea"
+        instance_name = f"{prefix}_{tenant_id}"
 
         if not instance:
             # Crear instancia en Evolution API
