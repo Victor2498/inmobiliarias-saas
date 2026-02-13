@@ -28,34 +28,50 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
     data = await request.json()
     event = data.get("event")
     
+    logger.info(f"WEBHOOK RECEIVED: Event={event} | Instance={data.get('instance')}")
+    
     if event == "MESSAGES_UPSERT":
         message_data = data.get("data", {})
+        key = message_data.get("key", {})
         message = message_data.get("message", {})
         
-        key = message_data.get("key", {})
         remote_jid = key.get("remoteJid")
         from_me = key.get("fromMe", False)
         
-        content = message.get("conversation") or message.get("extendedTextMessage", {}).get("text")
+        # Estructura Evolution v2 a veces varia
+        content = (
+            message.get("conversation") or 
+            message.get("extendedTextMessage", {}).get("text") or
+            message.get("imageMessage", {}).get("caption")
+        )
         
+        logger.info(f"MSG DATA: JID={remote_jid} | FromMe={from_me} | Content={content} | Instance={data.get('instance')}")
+
         if content and not from_me:
             instance_name = data.get("instance")
             # Buscar la instancia vinculada a la inmobiliaria
             instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.instance_name == instance_name).first()
             
             if instance:
-                new_msg = WhatsAppMessageModel(
-                    tenant_id=instance.tenant_id,
-                    remote_jid=remote_jid,
-                    from_me=from_me,
-                    content=content,
-                    processed=False
-                )
-                db.add(new_msg)
-                db.commit()
-                db.refresh(new_msg)
-                
-                # Delegar a la capa de Aplicacion asincronamente
-                background_tasks.add_task(AIAgentService.process_incoming_message, db, new_msg.id, content)
+                logger.info(f"Instancia encontrada en BD: {instance.id}. Guardando mensaje...")
+                try:
+                    new_msg = WhatsAppMessageModel(
+                        tenant_id=instance.tenant_id,
+                        remote_jid=remote_jid,
+                        from_me=from_me,
+                        content=content,
+                        processed=False
+                    )
+                    db.add(new_msg)
+                    db.commit()
+                    db.refresh(new_msg)
+                    logger.info(f"Mensaje guardado ID: {new_msg.id}")
+                    
+                    # Delegar a la capa de Aplicacion asincronamente
+                    background_tasks.add_task(AIAgentService.process_incoming_message, db, new_msg.id, content)
+                except Exception as e:
+                    logger.error(f"Error guardando mensaje: {e}")
+            else:
+                logger.error(f"❌ Instancia '{instance_name}' NO encontrada en BD local. Ignorando mensaje.")
 
     return {"status": "received"}
