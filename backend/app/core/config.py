@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     # Integraciones
     EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
     EVOLUTION_API_TOKEN: str | None = os.getenv("EVOLUTION_API_TOKEN")
+    INSTANCE_NAME: str = os.getenv("INSTANCE_NAME", "Inmonea")
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
 
     # URL interna para que Evolution API nos contacte (Webhook)
