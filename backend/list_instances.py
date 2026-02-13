@@ -11,10 +11,22 @@ async def list_instances():
             instances = resp.json()
             
             print(f"\n--- Instancias Encontradas ({len(instances)}) ---")
+            
+            # Debug: Imprimir estructura del primero
+            if instances:
+                print("Estructura RAW del primero:", instances[0])
+
             for inst in instances:
-                name = inst.get('instance', {}).get('instanceName', 'N/A')
-                status = inst.get('instance', {}).get('state', 'UNKNOWN') # Puede variar segun version
-                owner = inst.get('instance', {}).get('owner', 'No info')
+                # Intento de compatibilidad con varias versiones
+                if isinstance(inst, dict):
+                    name = inst.get('instance', {}).get('instanceName') or inst.get('instanceName') or inst.get('name') or 'N/A'
+                    status = inst.get('instance', {}).get('state') or inst.get('state') or inst.get('status') or 'UNKNOWN'
+                    owner = inst.get('instance', {}).get('owner') or inst.get('owner') or 'No info'
+                else:
+                    name = str(inst)
+                    status = "???"
+                    owner = "???"
+
                 print(f"👉 {name}")
                 print(f"   Status: {status}")
                 print(f"   Owner: {owner}")
