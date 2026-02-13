@@ -31,6 +31,7 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
     logger.info(f"WEBHOOK RECEIVED: Event={event} | Instance={data.get('instance')}")
     
     if event == "MESSAGES_UPSERT":
+        logger.info(f"DEBUG FULL PAYLOAD: {data}")
         message_data = data.get("data", {})
         key = message_data.get("key", {})
         message = message_data.get("message", {})
@@ -53,7 +54,7 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
             instance = db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.instance_name == instance_name).first()
             
             if instance:
-                logger.info(f"Instancia encontrada en BD: {instance.id}. Guardando mensaje...")
+                logger.info(f"✅ Instancia encontrada en BD: {instance.id} (Tenant: {instance.tenant_id}). Guardando mensaje...")
                 try:
                     new_msg = WhatsAppMessageModel(
                         tenant_id=instance.tenant_id,
@@ -65,13 +66,17 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
                     db.add(new_msg)
                     db.commit()
                     db.refresh(new_msg)
-                    logger.info(f"Mensaje guardado ID: {new_msg.id}")
+                    logger.info(f"💾 Mensaje guardado ID: {new_msg.id}")
                     
                     # Delegar a la capa de Aplicacion asincronamente
                     background_tasks.add_task(AIAgentService.process_incoming_message, db, new_msg.id, content)
                 except Exception as e:
-                    logger.error(f"Error guardando mensaje: {e}")
+                    logger.error(f"❌ Error guardando mensaje: {e}")
+                    db.rollback()
             else:
-                logger.error(f"❌ Instancia '{instance_name}' NO encontrada en BD local. Ignorando mensaje.")
+                logger.error(f"❌ Instancia '{instance_name}' NO encontrada en BD local. Ver instancias registradas:")
+                all_instances = db.query(WhatsAppInstanceModel).all()
+                for i in all_instances:
+                    logger.info(f"   BD Instance: '{i.instance_name}'")
 
     return {"status": "received"}
