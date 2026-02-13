@@ -27,8 +27,10 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
 
     data = await request.json()
     event = data.get("event")
+    instance_name = data.get("instance")
     
-    logger.info(f"WEBHOOK RECEIVED: Event={event} | Instance={data.get('instance')}")
+    logger.info(f"🔔 WEBHOOK REBICEIDO - Event: {event} | Instance: {instance_name}")
+    logger.info(f"📦 FULL DATA: {data}")
     
     if event == "MESSAGES_UPSERT":
         logger.info(f"DEBUG FULL PAYLOAD: {data}")
