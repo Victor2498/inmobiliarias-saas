@@ -63,7 +63,15 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
     
     # Integraciones
-    EVOLUTION_API_URL: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar").rstrip("/")
+    _evolution_url: str = os.getenv("EVOLUTION_API_URL", "https://apievolution.agentech.ar")
+    
+    @property
+    def EVOLUTION_API_URL(self) -> str:
+        url = self._evolution_url.rstrip("/")
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
+        return url
+
     EVOLUTION_API_TOKEN: str | None = os.getenv("EVOLUTION_API_TOKEN")
     INSTANCE_NAME: str = os.getenv("INSTANCE_NAME", "Inmonea")
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY")
