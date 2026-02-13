@@ -79,7 +79,11 @@ class EvolutionAPIClient:
         return "CONNECTED" if status == "open" else "DISCONNECTED"
 
     async def logout_instance(self, name: str):
-        resp = await self._safe_request("POST", f"/instance/logout/{name}")
+        # Evolution API v2 suele usar DELETE para logout
+        resp = await self._safe_request("DELETE", f"/instance/logout/{name}")
+        if not resp:
+             # Fallback para versiones nteriores
+             resp = await self._safe_request("POST", f"/instance/logout/{name}")
         return resp is not None
 
     async def send_message(self, instance_name: str, number: str, text: str):
