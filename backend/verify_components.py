@@ -13,7 +13,7 @@ from app.core.database import SessionLocal
 from app.domain.models.tenant import WhatsAppInstanceModel
 
 INSTANCE_NAME = "tenant_a866a4c0-c219-4ec8"
-TEST_PHONE = "5493794352784" # El mismo numero del bot para auto-envio, o cambiar si se desea
+TEST_PHONE = "5493794352784@s.whatsapp.net" # Formato JID real que viene del Webhook
 
 async def test_openai():
     print("\n--- Probando OpenAI ---")
