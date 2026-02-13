@@ -32,7 +32,10 @@ async def evolution_webhook(request: Request, background_tasks: BackgroundTasks,
     
     print(f"🔔 WEBHOOK RECIBIDO - Event: {event} | Instance: {instance_name}")
     
-    if event == "MESSAGES_UPSERT":
+    # Normalizar el nombre del evento (Evolution API v2 puede usar diferentes formatos)
+    event_normalized = event.upper().replace(".", "_") if event else ""
+    
+    if event_normalized == "MESSAGES_UPSERT":
         print(f"📦 DATA: {data}")
         message_data = data.get("data", {})
         key = message_data.get("key", {})
