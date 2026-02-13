@@ -45,10 +45,13 @@ def bootstrap_system():
         email = settings.INITIAL_SUPERADMIN_EMAIL
         username = "superadmin"
         
-        # Verificar por email O username para evitar UniqueViolation
-        admin_user = db.query(UserModel).filter(
-            or_(UserModel.email == email, UserModel.username == username)
-        ).first()
+        # Primero buscamos si existe un usuario con ese email (el nuevo)
+        admin_user = db.query(UserModel).filter(UserModel.email == email).first()
+        
+        # Si no existe por email, buscamos por username 'superadmin' para renombrarlo
+        if not admin_user:
+            admin_user = db.query(UserModel).filter(UserModel.username == username).first()
+
         if not admin_user:
             logger.info(f"👤 Creando SuperAdmin Enterprise: {email} (Bootstrap)...")
             admin_user = UserModel(
@@ -68,19 +71,18 @@ def bootstrap_system():
             db.commit()
             logger.info("✅ SuperAdmin Enterprise creado con éxito.")
         else:
-            # AUTO-REPARACIÓN CRÍTICA: Asegurar que el SuperAdmin coincida EXACTAMENTE con el SPEC
+            # Sincronización agresiva
             logger.info(f"🔧 Sincronizando credenciales de SuperAdmin: {email}")
             admin_user.email = email
             admin_user.username = username
+            # Si el password en env es el correcto, lo actualizamos si es necesario
             admin_user.hashed_password = get_password_hash(settings.INITIAL_SUPERADMIN_PASSWORD)
             admin_user.role = "SUPERADMIN"
             admin_user.tenant_id = "master"
-            admin_user.is_system_account = True
-            admin_user.cannot_be_deleted = True
             admin_user.email_verified = True
             admin_user.is_active = True
             db.commit()
-            logger.info("✅ SuperAdmin sincronizado y reparado con éxito.")
+            logger.info("✅ SuperAdmin sincronizado con éxito.")
 
     except Exception as e:
         logger.error(f"❌ Error en bootstrap: {e}")
