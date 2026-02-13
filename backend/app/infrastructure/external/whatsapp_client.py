@@ -47,9 +47,16 @@ class EvolutionAPIClient:
             return None
 
         # 2. Configurar Webhook automáticamente
-        # En producción (Docker), el backend suele estar en el servicio 'sistema_inmobiliaria' o 'backend'
-        base_url = settings.WEBHOOK_URL_OVERRIDE or "http://sistema_inmobiliaria:80/api/v1/webhooks/evolution"
-        webhook_url = f"{base_url}?token={settings.SECRET_KEY}"
+        # En producción, usamos el dominio público o el override del entorno
+        if settings.WEBHOOK_URL_OVERRIDE:
+            webhook_url = f"{settings.WEBHOOK_URL_OVERRIDE.rstrip('/')}?token={settings.SECRET_KEY}"
+        else:
+            # Fallback inteligente: si estamos en un contenedor, intentar resolver el host del backend
+            # O usar una URL relativa si la API lo permitiera (Evolution requiere URL absoluta)
+            base_url = "https://sistemainmobiliario.agentech.ar/api/v1/webhooks/evolution"
+            webhook_url = f"{base_url}?token={settings.SECRET_KEY}"
+        
+        logger.info(f"🔗 Configurando Webhook para {name}: {webhook_url.split('?')[0]}...")
         
         webhook_data = {
             "webhook": {

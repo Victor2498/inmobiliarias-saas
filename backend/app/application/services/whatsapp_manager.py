@@ -29,7 +29,9 @@ class WhatsAppManagerService:
             WhatsAppInstanceModel.tenant_id == tenant_id
         ).first()
         
-        instance_name = f"tenant_{tenant_id}"
+        # Priorizar nombre de instancia desde configuracion si existe
+        from app.core.config import settings
+        instance_name = settings.INSTANCE_NAME or f"tenant_{tenant_id}"
 
         if not instance:
             # Crear instancia en Evolution API

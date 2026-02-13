@@ -7,7 +7,7 @@ async def list_instances():
         async with httpx.AsyncClient() as client:
             # Listar todas las instancias
             print("Consultando instancias en Evolution API...")
-            resp = await client.get('http://evolution-api:8080/instance/fetchInstances', headers=headers)
+            resp = await client.get('https://apievolution.agentech.ar/instance/fetchInstances', headers=headers)
             instances = resp.json()
             
             print(f"\n--- Instancias Encontradas ({len(instances)}) ---")
