@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "*")
-    INITIAL_SUPERADMIN_EMAIL: str = os.getenv("INITIAL_SUPERADMIN_EMAIL", "alfredsistemas85@gmail.com")
-    INITIAL_SUPERADMIN_PASSWORD: str = os.getenv("INITIAL_SUPERADMIN_PASSWORD", "xEnEizE@2885")
+    INITIAL_SUPERADMIN_EMAIL: str = os.getenv("INITIAL_SUPERADMIN_EMAIL", "victoralfredo27@gmail.com")
+    INITIAL_SUPERADMIN_PASSWORD: str = os.getenv("INITIAL_SUPERADMIN_PASSWORD", "admin123456")
     
     # Database
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
