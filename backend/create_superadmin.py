@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 sys.path.append(os.path.join(os.getcwd(), 'app'))
 
 from app.core.config import settings
-from app.infrastructure.persistence.models import UserModel, TenantModel
+from app.domain.models.user import UserModel
+from app.domain.models.tenant import TenantModel
 from app.infrastructure.security.hashing import get_password_hash
 
 def create_superadmin():
