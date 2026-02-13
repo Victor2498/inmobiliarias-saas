@@ -1,7 +1,7 @@
-import openai
+from openai import AsyncOpenAI
 from app.core.config import settings
 
-openai.api_key = settings.OPENAI_API_KEY
+client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 class OpenAIService:
     @staticmethod
@@ -20,7 +20,7 @@ class OpenAIService:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            response = await client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}]
             )
