@@ -4,7 +4,7 @@ import asyncio
 async def test_internal_dns():
     targets = [
         "http://sistema_inmobiliaria:8000/api/v1/whatsapp/status",
-        "http://localhost:8000/api/v1/whatsapp/status"
+        "http://evolution-api:8080/instance/fetchInstances"
     ]
     
     print("🌐 Probando resolución de nombres interna...")
