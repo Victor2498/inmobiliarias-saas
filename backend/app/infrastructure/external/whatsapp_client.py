@@ -88,10 +88,12 @@ class EvolutionAPIClient:
 
     async def send_message(self, instance_name: str, number: str, text: str):
         """Envía un mensaje de texto a un número específico."""
+        # Evolution API v2 simplificado
         data = {
             "number": number,
-            "options": {"delay": 1200, "presence": "composing", "linkPreview": False},
-            "textMessage": {"text": text}
+            "text": text,
+            "delay": 1200,
+            "linkPreview": False
         }
         return await self._safe_request("POST", f"/message/sendText/{instance_name}", json=data)
 
