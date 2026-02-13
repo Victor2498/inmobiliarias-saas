@@ -20,8 +20,8 @@ async def list_instances():
                 # Intento de compatibilidad con varias versiones
                 if isinstance(inst, dict):
                     name = inst.get('instance', {}).get('instanceName') or inst.get('instanceName') or inst.get('name') or 'N/A'
-                    status = inst.get('instance', {}).get('state') or inst.get('state') or inst.get('status') or 'UNKNOWN'
-                    owner = inst.get('instance', {}).get('owner') or inst.get('owner') or 'No info'
+                    status = inst.get('instance', {}).get('state') or inst.get('connectionStatus') or inst.get('state') or 'UNKNOWN'
+                    owner = inst.get('instance', {}).get('owner') or inst.get('ownerJid') or 'No info'
                 else:
                     name = str(inst)
                     status = "???"
