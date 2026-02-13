@@ -9,7 +9,7 @@ sys.path.append(os.getcwd())
 from app.core.config import settings
 from app.infrastructure.external.openai_service import OpenAIService
 from app.infrastructure.external.whatsapp_client import whatsapp_client
-from app.infrastructure.database.connection import SessionLocal
+from app.core.database import SessionLocal
 from app.domain.models.tenant import WhatsAppInstanceModel
 
 INSTANCE_NAME = "tenant_a866a4c0-c219-4ec8"
