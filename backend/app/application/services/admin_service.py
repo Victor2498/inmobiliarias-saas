@@ -33,9 +33,13 @@ class AdminService:
         db.flush() # Force ID creation for AuditLog FK
         
         # 3. Crear Usuario Administrador para el Tenant
+        # Normalizamos el nombre para usarlo como username
+        username = name.strip().lower().replace(" ", "_")
+        
         new_admin = UserModel(
             tenant_id=tenant_id,
             email=email,
+            username=username,
             hashed_password=hashing.get_password_hash(password),
             full_name=f"Admin {name}",
             role="INMOBILIARIA_ADMIN",

@@ -60,6 +60,7 @@ class AuthService:
 
         if user:
             logger.info(f"👤 Usuario administrador localizado para {identifier}: {user.email}")
+            user.temp_identifier_used = identifier
             return self._process_user_login(user, data.password)
 
         # 2. Fallback: Buscar Tenant Legacy (solo por compatibilidad externa)
@@ -99,6 +100,8 @@ class AuthService:
             )
         ).first()
         
+        if user:
+            user.temp_identifier_used = identifier
         return self._process_user_login(user, data.password)
 
     def change_password(self, current_user: UserModel, data: ChangePassword) -> None:
@@ -144,14 +147,26 @@ class AuthService:
             logger.info(f"🚫 Login bloqueado por falta de verificación: {user.email}")
             raise HTTPException(status_code=403, detail="Email no verificado. Revise su correo.")
 
+        # 4. Regla: Inmobiliarias deben usar email el primer login
+        # Si intentan usar username y login_count es 0, bloqueamos
+        identifier = getattr(user, "temp_identifier_used", "").lower()
+        if user.role == "INMOBILIARIA_ADMIN" and user.login_count == 0:
+            if identifier == user.username.lower():
+                logger.warning(f"🚫 Intento de primer login con username denegado para {user.email}")
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Para su primer ingreso, debe utilizar su correo electrónico verificado. Luego podrá usar el nombre de la inmobiliaria."
+                )
+
         if not user.is_active:
             raise HTTPException(status_code=403, detail="Cuenta inactiva")
 
-        # 4. Éxito
+        # 5. Éxito
         user.failed_attempts = 0
         user.locked_until = None
+        user.login_count += 1
         self.db.commit()
-        logger.info(f"✅ Login exitoso: {user.email}")
+        logger.info(f"✅ Login exitoso: {user.email} (Acceso #{user.login_count})")
 
         access_token = tokens.create_access_token(
             subject=user.email,

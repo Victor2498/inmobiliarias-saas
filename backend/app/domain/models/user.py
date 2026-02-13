@@ -19,6 +19,7 @@ class UserModel(Base):
     force_password_change = Column(Boolean, default=False)
     failed_attempts = Column(Integer, default=0)
     locked_until = Column(DateTime, nullable=True)
+    login_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
