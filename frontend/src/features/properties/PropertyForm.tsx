@@ -23,13 +23,17 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onClose, onSucces
         try {
             if (property?.id) {
                 await PropertyService.update(property.id, formData);
+                alert('¡Propiedad actualizada con éxito!');
             } else {
                 await PropertyService.create(formData);
+                alert('¡Propiedad agregada con éxito!');
             }
             onSuccess();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving property", error);
+            const msg = error.response?.data?.detail || "Error al guardar la propiedad";
+            alert(msg);
         }
     };
 
