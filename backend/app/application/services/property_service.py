@@ -42,3 +42,10 @@ class PropertyService:
         self.db.delete(db_obj)
         self.db.commit()
         return True
+
+    def get_available_by_tenant(self, tenant_id: str, limit: int = 3) -> List[PropertyModel]:
+        """Fetch available properties for a specific tenant."""
+        return self.db.query(PropertyModel).filter(
+            PropertyModel.tenant_id == tenant_id,
+            PropertyModel.status == "AVAILABLE"
+        ).limit(limit).all()

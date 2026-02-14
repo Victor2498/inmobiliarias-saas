@@ -39,12 +39,32 @@ class AIAgentService:
             
             reply_text = "Gracias por tu mensaje. Un asesor se pondrá en contacto contigo a la brevedad."
             
+            # 2.5 Buscar propiedades si la intención es inmobiliaria
+            from app.application.services.property_service import PropertyService
+            prop_service = PropertyService(db)
+
             if intent == "ALQUILER":
-                reply_text = "Hola! Veo que buscas alquilar. ¿Podrías indicarme qué zona te interesa y cuántos ambientes?"
+                properties = prop_service.get_available_by_tenant(message.tenant_id, limit=3)
+                if properties:
+                    reply_text = "🏠 *¡Hola! Aquí tienes algunas opciones de alquiler disponibles:*\n\n"
+                    for p in properties:
+                        reply_text += f"📌 *{p.title}*\n📍 {p.address}\n💰 {p.currency} {p.price:,.0f}\n---\n"
+                    reply_text += "\n¿Te interesa alguna de estas o buscas algo diferente?"
+                else:
+                    reply_text = "¡Hola! Veo que buscas alquilar. Por el momento no tengo opciones disponibles en sistema, pero puedo avisarte apenas ingrese algo. ¿En qué zona buscas?"
+            
             elif intent == "COMPRA":
-                reply_text = "Hola! Para comprar, ¿qué presupuesto estás manejando y qué zona prefieres?"
+                properties = prop_service.get_available_by_tenant(message.tenant_id, limit=3)
+                if properties:
+                    reply_text = "🏠 *¡Hola! Estas son algunas de nuestras propiedades en venta:*\n\n"
+                    for p in properties:
+                        reply_text += f"📌 *{p.title}*\n📍 {p.address}\n💰 {p.currency} {p.price:,.0f}\n---\n"
+                    reply_text += "\n¿Te gustaría coordinar una visita para ver alguna?"
+                else:
+                    reply_text = "¡Hola! Para comprar, ¿qué presupuesto estás manejando y qué zona prefieres? En este momento no tengo propiedades cargadas que coincidan, pero puedo buscar por ti."
+            
             elif intent == "TASACION":
-                reply_text = "Para realizar una tasación necesitamos saber la dirección de la propiedad y si es casa o departamento."
+                reply_text = "Para realizar una tasación necesitamos saber la dirección de la propiedad y si es casa o departamento. ¿Te gustaría agendar una visita?"
             
             # 3. Actualizar con resultado
             message.intent = intent
