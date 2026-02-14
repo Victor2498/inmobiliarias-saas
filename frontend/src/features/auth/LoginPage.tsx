@@ -28,7 +28,13 @@ const LoginPage: React.FC = () => {
                 data = await AuthService.loginAdmin(identifier, password);
             }
             setAuth(data.access_token, data.user);
-            navigate('/dashboard');
+
+            // Redirección inteligente basada en el rol
+            if (data.user.role === 'SUPERADMIN') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err: any) {
             console.error(err);
             setError(err.response?.data?.detail || 'Credenciales inválidas o error de conexión.');
