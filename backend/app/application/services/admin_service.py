@@ -155,10 +155,29 @@ class AdminService:
             db.query(WhatsAppInstanceModel).filter(WhatsAppInstanceModel.tenant_id == tenant_id).delete(synchronize_session=False)
 
             # Usuarios y Logs
+            from app.domain.models.user import EmailVerificationTokenModel
+            
+            # Limpiar tokens de verificación primero (dependencia de UserModel)
+            db.query(EmailVerificationTokenModel).filter(
+                EmailVerificationTokenModel.user_id == UserModel.id,
+                UserModel.tenant_id == tenant_id
+            ).delete(synchronize_session=False)
+
+            # Borrar logs de auditoría vinculados al tenant
+            db.query(AuditLogModel).filter(AuditLogModel.tenant_id == tenant_id).delete(synchronize_session=False)
+
+            # Borrar Usuarios
             db.query(UserModel).filter(UserModel.tenant_id == tenant_id).delete(synchronize_session=False)
             
-            # IMPORTANTE: Guardar el log antes de borrar el Tenant si es que el Tenant id es necesario
-            AdminService.log_action(db, actor_id, "FORCE_DELETE_TENANT", tenant_id, {"name": tenant.name})
+            # Registrar el log de eliminación antes de borrar el Tenant, 
+            # pero SIN vincularlo al tenant_id que está a punto de desaparecer (evita FK Violation)
+            AdminService.log_action(
+                db, 
+                actor_id=actor_id, 
+                action="FORCE_DELETE_TENANT", 
+                tenant_id=None, 
+                details={"target_tenant_id": tenant_id, "target_tenant_name": tenant.name}
+            )
 
             # Eliminamos el Tenant final
             db.delete(tenant)
