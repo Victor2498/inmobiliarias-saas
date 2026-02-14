@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
     React.useEffect(() => {
         if (token && user) {
             if (user.role === 'SUPERADMIN') {
-                navigate('/admin');
+                navigate('/superadmin');
             } else {
                 navigate('/dashboard');
             }
@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
 
             // Redirección inteligente basada en el rol
             if (data.user.role === 'SUPERADMIN') {
-                navigate('/admin');
+                navigate('/superadmin');
             } else {
                 navigate('/dashboard');
             }

@@ -20,7 +20,7 @@ import { useAuthStore } from './store/useAuthStore';
 const RootRedirect: React.FC = () => {
   const { user, token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
-  if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
+  if (user?.role === 'SUPERADMIN') return <Navigate to="/superadmin" replace />;
   return <Navigate to="/dashboard" replace />;
 };
 
@@ -38,7 +38,7 @@ const App: React.FC = () => {
 
             {/* Rutas Protegidas */}
             <Route element={<AuthGuard />}>
-              <Route path="/admin" element={<AdminLayout />} />
+              <Route path="/superadmin" element={<AdminLayout />} />
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<DashboardHome />} />
                 <Route path="/properties" element={<PropertyList />} />

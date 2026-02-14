@@ -35,7 +35,7 @@ const Sidebar: React.FC = () => {
                 <SidebarItem to="/dashboard" icon={<LayoutDashboard size={22} />} label="Dashboard" active={location.pathname === '/dashboard'} />
 
                 {user?.role === 'SUPERADMIN' && (
-                    <SidebarItem to="/admin" icon={<Shield size={22} />} label="Administración" active={location.pathname === '/admin'} />
+                    <SidebarItem to="/superadmin" icon={<Shield size={22} />} label="Administración" active={location.pathname === '/superadmin'} />
                 )}
 
                 <div className="pt-4 pb-2 px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Gestión</div>

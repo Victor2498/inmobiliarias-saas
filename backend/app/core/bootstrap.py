@@ -71,18 +71,16 @@ def bootstrap_system():
             db.commit()
             logger.info("✅ SuperAdmin Enterprise creado con éxito.")
         else:
-            # Sincronización agresiva
-            logger.info(f"🔧 Sincronizando credenciales de SuperAdmin: {email}")
+            # Sincronización suave (Soft sync) - No sobrescribimos el password si ya existe
+            logger.info(f"🔧 Sincronizando datos de SuperAdmin: {email}")
             admin_user.email = email
             admin_user.username = username
-            # Si el password en env es el correcto, lo actualizamos si es necesario
-            admin_user.hashed_password = get_password_hash(settings.INITIAL_SUPERADMIN_PASSWORD)
             admin_user.role = "SUPERADMIN"
             admin_user.tenant_id = "master"
             admin_user.email_verified = True
             admin_user.is_active = True
             db.commit()
-            logger.info("✅ SuperAdmin sincronizado con éxito.")
+            logger.info("✅ SuperAdmin sincronizado (sin afectar password).")
 
     except Exception as e:
         logger.error(f"❌ Error en bootstrap: {e}")
