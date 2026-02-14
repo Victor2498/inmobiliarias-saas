@@ -15,14 +15,21 @@ class AdminService:
             # 1. Validar existencia de Tenant
             existing_tenant = db.query(TenantModel).filter(TenantModel.name == name).first()
             if existing_tenant:
-                return None, "El nombre de la inmobiliaria ya existe"
+                return None, f"El nombre de la inmobiliaria '{name}' ya está registrado"
             
-            # 2. Validar existencia de Usuario Admin
-            existing_user = db.query(UserModel).filter(UserModel.email == email).first()
-            if existing_user:
-                return None, "El email del administrador ya está registrado en el sistema"
+            # 2. Validar existencia de Usuario Admin por Email
+            existing_user_email = db.query(UserModel).filter(UserModel.email == email).first()
+            if existing_user_email:
+                return None, f"El email '{email}' ya pertenece a otro usuario registrado"
             
-            # 3. Crear Tenant
+            # 3. Validar existencia de Usuario Admin por Username (generado)
+            username = name.strip().lower().replace(" ", "_").replace(".", "_")
+            existing_user_username = db.query(UserModel).filter(UserModel.username == username).first()
+            if existing_user_username:
+                # Si el username derivado del nombre falla, intentamos con un sufijo aleatorio o avisamos
+                return None, f"El nombre de usuario '{username}' ya está en uso. Intente con un nombre de inmobiliaria ligeramente diferente."
+
+            # 4. Crear Tenant
             tenant_id = str(uuid.uuid4())[:18]
             new_tenant = TenantModel(
                 id=tenant_id,
@@ -38,10 +45,7 @@ class AdminService:
             db.add(new_tenant)
             db.flush() # Force ID creation for AuditLog FK
             
-            # 4. Crear Usuario Administrador para el Tenant
-            # Normalizamos el nombre para usarlo como username
-            username = name.strip().lower().replace(" ", "_").replace(".", "_")
-            
+            # 5. Crear Usuario Administrador para el Tenant
             new_admin = UserModel(
                 tenant_id=tenant_id,
                 email=email,
@@ -55,7 +59,7 @@ class AdminService:
             db.add(new_admin)
             db.flush()
 
-            # 5. Registrar en Auditoría
+            # 6. Registrar en Auditoría
             AdminService.log_action(
                 db, 
                 actor_id=actor_id, 

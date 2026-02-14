@@ -84,8 +84,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
             setShowCreate(false);
             setNewName(''); setNewEmail(''); setNewPassword('');
             fetchTenants();
-        } catch (err) {
-            alert('Error al crear inmobiliaria');
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.detail || 'Error al crear inmobiliaria';
+            alert(errorMsg);
         }
     };
 
