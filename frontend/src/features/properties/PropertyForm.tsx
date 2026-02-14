@@ -9,6 +9,37 @@ interface PropertyFormProps {
     onSuccess: () => void;
 }
 
+const InputField = ({ label, value, onChange, placeholder, type = "text", required = false, select = false, options = [] }: any) => (
+    <div className="space-y-1.5 flex flex-col">
+        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center mb-1">
+            {label} {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+        {select ? (
+            <div className="relative group">
+                <select
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    className="w-full bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:bg-slate-900/60"
+                >
+                    {options.map((opt: string) => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                    <ChevronRight size={14} className="rotate-90" />
+                </div>
+            </div>
+        ) : (
+            <input
+                type={type}
+                required={required}
+                placeholder={placeholder}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white font-semibold placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/60"
+            />
+        )}
+    </div>
+);
+
 const PropertyForm: React.FC<PropertyFormProps> = ({ property, onClose, onSuccess }) => {
     const [activeTab, setActiveTab] = useState<'principal' | 'secundario'>('principal');
     const [loading, setLoading] = useState(false);
@@ -98,36 +129,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onClose, onSucces
     };
 
 
-    const InputField = ({ label, value, onChange, placeholder, type = "text", required = false, select = false, options = [] }: any) => (
-        <div className="space-y-1.5 flex flex-col">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center mb-1">
-                {label} {required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            {select ? (
-                <div className="relative group">
-                    <select
-                        value={value}
-                        onChange={e => onChange(e.target.value)}
-                        className="w-full bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:bg-slate-900/60"
-                    >
-                        {options.map((opt: string) => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                        <ChevronRight size={14} className="rotate-90" />
-                    </div>
-                </div>
-            ) : (
-                <input
-                    type={type}
-                    required={required}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white font-semibold placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/60"
-                />
-            )}
-        </div>
-    );
 
     return (
         <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center z-[100] p-4 text-slate-200">
