@@ -1,11 +1,17 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import { Sun, Moon } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
+    const { user } = useAuthStore();
+
+    // Redirección inmediata si el usuario es SuperAdmin para evitar "flashear" el panel de inmobiliaria
+    if (user?.role === 'SUPERADMIN') {
+        return <Navigate to="/superadmin" replace />;
+    }
 
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden transition-colors duration-500">
