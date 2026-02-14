@@ -14,6 +14,15 @@ import LoginPage from './features/auth/LoginPage';
 import VerifyEmail from './features/auth/VerifyEmail';
 import AdminLayout from './features/admin/AdminLayout';
 import { useTheme } from './context/ThemeContext';
+import { useAuthStore } from './store/useAuthStore';
+
+// Componente para redirección inteligente según el rol
+const RootRedirect: React.FC = () => {
+  const { user, token } = useAuthStore();
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
+  return <Navigate to="/dashboard" replace />;
+};
 
 const App: React.FC = () => {
   const { theme } = useTheme();
@@ -42,11 +51,11 @@ const App: React.FC = () => {
                 <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/" element={<Navigate to="/dashboard" />} />
+                <Route path="/" element={<RootRedirect />} />
               </Route>
             </Route>
 
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<RootRedirect />} />
           </Routes>
         </BrowserRouter>
       </div>

@@ -7,7 +7,19 @@ import { AuthService } from './AuthService';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const { token, user, setAuth } = useAuthStore();
+
+    // Redirigir si ya está logueado
+    React.useEffect(() => {
+        if (token && user) {
+            if (user.role === 'SUPERADMIN') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
+        }
+    }, [token, user, navigate]);
+
     const [loginType, setLoginType] = useState<'tenant' | 'admin'>('tenant');
     const [identifier, setIdentifier] = useState(''); // email o username
     const [password, setPassword] = useState('');
