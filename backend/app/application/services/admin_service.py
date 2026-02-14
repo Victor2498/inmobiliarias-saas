@@ -11,56 +11,67 @@ logger = logging.getLogger(__name__)
 class AdminService:
     @staticmethod
     def create_tenant(db: Session, name: str, email: str, password: str, plan: str = "lite", whatsapp_enabled: bool = False, actor_id: int = None):
-        # 1. Validar existencia
-        existing = db.query(TenantModel).filter(TenantModel.name == name).first()
-        if existing:
-            return None, "El nombre de la inmobiliaria ya existe"
-        
-        # 2. Crear Tenant
-        tenant_id = str(uuid.uuid4())[:18]
-        new_tenant = TenantModel(
-            id=tenant_id,
-            name=name,
-            email=email,
-            hashed_password=hashing.get_password_hash(password),
-            is_active=True,
-            status="active",
-            plan=plan,
-            whatsapp_enabled=whatsapp_enabled,
-            preferences={"theme": "light"}
-        )
-        db.add(new_tenant)
-        db.flush() # Force ID creation for AuditLog FK
-        
-        # 3. Crear Usuario Administrador para el Tenant
-        # Normalizamos el nombre para usarlo como username
-        username = name.strip().lower().replace(" ", "_")
-        
-        new_admin = UserModel(
-            tenant_id=tenant_id,
-            email=email,
-            username=username,
-            hashed_password=hashing.get_password_hash(password),
-            full_name=f"Admin {name}",
-            role="INMOBILIARIA_ADMIN",
-            is_active=True,
-            email_verified=True # Creado por SuperAdmin
-        )
-        db.add(new_admin)
-        db.flush()
+        try:
+            # 1. Validar existencia de Tenant
+            existing_tenant = db.query(TenantModel).filter(TenantModel.name == name).first()
+            if existing_tenant:
+                return None, "El nombre de la inmobiliaria ya existe"
+            
+            # 2. Validar existencia de Usuario Admin
+            existing_user = db.query(UserModel).filter(UserModel.email == email).first()
+            if existing_user:
+                return None, "El email del administrador ya está registrado en el sistema"
+            
+            # 3. Crear Tenant
+            tenant_id = str(uuid.uuid4())[:18]
+            new_tenant = TenantModel(
+                id=tenant_id,
+                name=name,
+                email=email,
+                hashed_password=hashing.get_password_hash(password),
+                is_active=True,
+                status="active",
+                plan=plan,
+                whatsapp_enabled=whatsapp_enabled,
+                preferences={"theme": "light"}
+            )
+            db.add(new_tenant)
+            db.flush() # Force ID creation for AuditLog FK
+            
+            # 4. Crear Usuario Administrador para el Tenant
+            # Normalizamos el nombre para usarlo como username
+            username = name.strip().lower().replace(" ", "_").replace(".", "_")
+            
+            new_admin = UserModel(
+                tenant_id=tenant_id,
+                email=email,
+                username=username,
+                hashed_password=hashing.get_password_hash(password),
+                full_name=f"Admin {name}",
+                role="INMOBILIARIA_ADMIN",
+                is_active=True,
+                email_verified=True # Creado por SuperAdmin
+            )
+            db.add(new_admin)
+            db.flush()
 
-        # 4. Registrar en Auditoría
-        AdminService.log_action(
-            db, 
-            actor_id=actor_id, 
-            tenant_id=tenant_id, 
-            action="CREATE_TENANT", 
-            details={"name": name, "plan": plan, "admin_email": email}
-        )
-        
-        db.commit()
-        db.refresh(new_tenant)
-        return new_tenant, None
+            # 5. Registrar en Auditoría
+            AdminService.log_action(
+                db, 
+                actor_id=actor_id, 
+                tenant_id=tenant_id, 
+                action="CREATE_TENANT", 
+                details={"name": name, "plan": plan, "admin_email": email}
+            )
+            
+            db.commit()
+            db.refresh(new_tenant)
+            return new_tenant, None
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error al crear tenant: {str(e)}")
+            return None, f"Error inesperado al crear la inmobiliaria: {str(e)}"
 
     @staticmethod
     def update_tenant(db: Session, tenant_id: str, update_data: dict, actor_id: int = None):
