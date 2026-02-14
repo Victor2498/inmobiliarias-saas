@@ -13,19 +13,22 @@ class BaseRepository(Generic[T]):
     Repositorio base que aplica filtrado por tenant_id automaticamente.
     Garantiza que ningun tenant acceda a datos de otro.
     """
-    def __init__(self, model: Type[T], db: Session):
+    def __init__(self, model: Type[T], db: Session, tenant_id: Optional[str] = None):
         self.model = model
         self.db = db
+        self.explicit_tenant_id = tenant_id
 
     def _get_query(self) -> Query:
-        tenant_id = get_current_tenant_id()
+        # Priorizar explicit_tenant_id si fue pasado al constructor
+        tenant_id = self.explicit_tenant_id or get_current_tenant_id()
+        
         query = self.db.query(self.model)
         if hasattr(self.model, 'tenant_id'):
             if tenant_id:
-                logger.debug(f"Filtering {self.model.__tablename__} by tenant_id='{tenant_id}'")
+                logger.debug(f"Filtering {self.model.__tablename__} by tenant_id='{tenant_id}' (Source: {'Explicit' if self.explicit_tenant_id else 'Context'})")
                 query = query.filter(self.model.tenant_id == tenant_id)
             else:
-                logger.warning(f"NO TENANT_ID found in context for {self.model.__tablename__}")
+                logger.warning(f"NO TENANT_ID found in context or explicit for {self.model.__tablename__}")
                 query = query.filter(False)
         return query
 
@@ -47,7 +50,7 @@ class BaseRepository(Generic[T]):
         return self._get_query().count()
 
     def create(self, obj_in: dict) -> T:
-        tenant_id = get_current_tenant_id()
+        tenant_id = self.explicit_tenant_id or get_current_tenant_id()
         if hasattr(self.model, 'tenant_id') and "tenant_id" not in obj_in:
             obj_in["tenant_id"] = tenant_id
         

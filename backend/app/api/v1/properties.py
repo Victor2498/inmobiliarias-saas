@@ -16,14 +16,14 @@ def list_properties(
     current_user = Depends(get_current_user)
 ):
     print(f"DEBUG: list_properties - User: {current_user.email}, TenantID: {current_user.tenant_id}")
-    service = PropertyService(db)
+    service = PropertyService(db, tenant_id=current_user.tenant_id)
     props = service.list_properties(skip=skip, limit=limit)
     print(f"DEBUG: list_properties - Count: {len(props)}")
     return props
 
 @router.get("/{property_id}", response_model=PropertyResponse)
 def get_property(property_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    service = PropertyService(db)
+    service = PropertyService(db, tenant_id=current_user.tenant_id)
     prop = service.get_property(property_id)
     if not prop:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
@@ -31,12 +31,12 @@ def get_property(property_id: int, db: Session = Depends(get_db), current_user =
 
 @router.post("/", response_model=PropertyResponse)
 def create_property(property_in: PropertyCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
-    service = PropertyService(db)
+    service = PropertyService(db, tenant_id=current_user.tenant_id)
     return service.create_property(property_in, tenant_id=current_user.tenant_id)
 
 @router.put("/{property_id}", response_model=PropertyResponse)
 def update_property(property_id: int, property_in: PropertyUpdate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
-    service = PropertyService(db)
+    service = PropertyService(db, tenant_id=current_user.tenant_id)
     prop = service.update_property(property_id, property_in)
     if not prop:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
@@ -44,7 +44,7 @@ def update_property(property_id: int, property_in: PropertyUpdate, db: Session =
 
 @router.delete("/{property_id}")
 def delete_property(property_id: int, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN"]))):
-    service = PropertyService(db)
+    service = PropertyService(db, tenant_id=current_user.tenant_id)
     if not service.delete_property(property_id):
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
     return {"message": "Propiedad eliminada correctamente"}

@@ -39,21 +39,24 @@ const App: React.FC = () => {
             {/* Rutas Protegidas */}
             <Route element={<AuthGuard />}>
               <Route path="/superadmin" element={<AdminLayout />} />
+
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<DashboardHome />} />
                 <Route path="/properties" element={<PropertyList />} />
                 <Route path="/whatsapp" element={<WhatsAppDashboard />} />
                 <Route path="/people" element={<PeopleList />} />
-
-                {/* Gestión Unificada de Inquilinos (Contratos + Liquidaciones) */}
                 <Route path="/multitenant" element={<TenantManagement />} />
-
                 <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/" element={<RootRedirect />} />
               </Route>
+
+              {/* Redirección raíz dentro del AuthGuard pero fuera de los Layouts específicos si es necesario, 
+                  o simplemente dejar que el RootRedirect maneje la lógica global */}
+              <Route path="/" element={<RootRedirect />} />
             </Route>
+
+            <Route path="*" element={<RootRedirect />} />
 
             <Route path="*" element={<RootRedirect />} />
           </Routes>

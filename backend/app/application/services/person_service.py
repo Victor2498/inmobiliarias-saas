@@ -5,9 +5,9 @@ from app.infrastructure.persistence.repository import BaseRepository
 from app.domain.schemas.person import PersonCreate, PersonUpdate
 
 class PersonService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, tenant_id: Optional[str] = None):
         self.db = db
-        self.repo = BaseRepository(PersonModel, db)
+        self.repo = BaseRepository(PersonModel, db, tenant_id=tenant_id)
 
     def list_people(self, person_type: Optional[str] = None, skip: int = 0, limit: int = 100) -> List[PersonModel]:
         query = self.repo._get_query()

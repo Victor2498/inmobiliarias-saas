@@ -5,9 +5,9 @@ from app.infrastructure.persistence.repository import BaseRepository
 from app.domain.schemas.property import PropertyCreate, PropertyUpdate
 
 class PropertyService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, tenant_id: Optional[str] = None):
         self.db = db
-        self.repo = BaseRepository(PropertyModel, db)
+        self.repo = BaseRepository(PropertyModel, db, tenant_id=tenant_id)
 
     def list_properties(self, skip: int = 0, limit: int = 100) -> List[PropertyModel]:
         return self.repo.list(skip=skip, limit=limit)

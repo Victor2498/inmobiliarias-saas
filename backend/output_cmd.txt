@@ -1,0 +1,9 @@
+--- Checking for email: victoralfredo2498@gmail.com ---
+User found: ID=15, Username=inmobiliaria_nea, TenantID=71c0b3b6-2598-42b9
+
+--- Checking for tenant name: Inmobiliaria UNNE ---
+No tenant found with this name.
+
+--- All users with similar emails ---
+Email: victoralfredo2498@gmail.com, Username: inmobiliaria_nea
+Email: victoralfredo27@gmail.com, Username: superadmin
