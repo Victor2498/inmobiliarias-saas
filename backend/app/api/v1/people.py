@@ -22,7 +22,7 @@ def list_people(
 @router.post("/", response_model=PersonResponse)
 def create_person(person_in: PersonCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
     service = PersonService(db)
-    return service.create_person(person_in)
+    return service.create_person(person_in, tenant_id=current_user.tenant_id)
 
 @router.get("/{person_id}", response_model=PersonResponse)
 def get_person(person_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):

@@ -19,9 +19,11 @@ class ContractService:
             options=[joinedload(ContractModel.property), joinedload(ContractModel.person)]
         )
 
-    def create_contract(self, contract_in: ContractCreate) -> ContractModel:
+    def create_contract(self, contract_in: ContractCreate, tenant_id: Optional[str] = None) -> ContractModel:
         data = contract_in.model_dump()
         data["current_rent"] = data["monthly_rent"]
+        if tenant_id:
+            data["tenant_id"] = tenant_id
         return self.contract_repo.create(data)
 
     def list_charges(self) -> List[ChargeModel]:

@@ -29,7 +29,7 @@ def get_property(property_id: int, db: Session = Depends(get_db), current_user =
 @router.post("/", response_model=PropertyResponse)
 def create_property(property_in: PropertyCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
     service = PropertyService(db)
-    return service.create_property(property_in)
+    return service.create_property(property_in, tenant_id=current_user.tenant_id)
 
 @router.put("/{property_id}", response_model=PropertyResponse)
 def update_property(property_id: int, property_in: PropertyUpdate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):

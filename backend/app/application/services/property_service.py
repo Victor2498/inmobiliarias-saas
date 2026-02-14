@@ -15,8 +15,11 @@ class PropertyService:
     def get_property(self, property_id: int) -> Optional[PropertyModel]:
         return self.repo.get(property_id)
 
-    def create_property(self, property_in: PropertyCreate) -> PropertyModel:
-        return self.repo.create(property_in.model_dump())
+    def create_property(self, property_in: PropertyCreate, tenant_id: Optional[str] = None) -> PropertyModel:
+        data = property_in.model_dump()
+        if tenant_id:
+            data["tenant_id"] = tenant_id
+        return self.repo.create(data)
 
     def update_property(self, property_id: int, property_in: PropertyUpdate) -> Optional[PropertyModel]:
         db_obj = self.repo.get(property_id)

@@ -19,8 +19,10 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Importante: Asegurar que el contexto del tenant este seteado para el usuario logueado
-    if user.role != "SUPERADMIN":
+    # Asegurar que el contexto del tenant este seteado para el usuario logueado
+    # Importante: para SUPERADMIN, el middleware ya podria haber seteado uno via header,
+    # pero aquí nos aseguramos de tener al menos el del propio usuario si nada más existe.
+    if user.tenant_id:
         set_current_tenant_id(user.tenant_id)
         
     return user

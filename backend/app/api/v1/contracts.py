@@ -21,7 +21,7 @@ def list_contracts(
 @router.post("/", response_model=ContractResponse)
 def create_contract(contract_in: ContractCreate, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN", "ASESOR"]))):
     service = ContractService(db)
-    return service.create_contract(contract_in)
+    return service.create_contract(contract_in, tenant_id=current_user.tenant_id)
 
 @router.post("/generate-monthly-charges")
 async def generate_charges(month: int, year: int, db: Session = Depends(get_db), current_user = Depends(RoleChecker(["INMOBILIARIA_ADMIN"])), _ = Depends(PlanChecker(["basic", "premium"]))):

@@ -15,8 +15,11 @@ class PersonService:
             query = query.filter(PersonModel.type == person_type)
         return query.offset(skip).limit(limit).all()
 
-    def create_person(self, person_in: PersonCreate) -> PersonModel:
-        return self.repo.create(person_in.model_dump())
+    def create_person(self, person_in: PersonCreate, tenant_id: Optional[str] = None) -> PersonModel:
+        data = person_in.model_dump()
+        if tenant_id:
+            data["tenant_id"] = tenant_id
+        return self.repo.create(data)
 
     def get_person(self, person_id: int) -> Optional[PersonModel]:
         return self.repo.get(person_id)
