@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Shield, MessageSquare, Search, Filter, MoreHorizontal, TrendingUp, Users, AlertTriangle, Edit, Power, Trash2, X, Save, Download } from 'lucide-react';
+import { Plus, Shield, MessageSquare, Search, Filter, MoreHorizontal, TrendingUp, Users, AlertTriangle, Edit, Power, Trash2, X, Save, Download, Loader2 } from 'lucide-react';
 import axiosInstance from '../../api/axiosInstance';
 
 interface Tenant {
@@ -19,6 +19,95 @@ interface AdminDashboardProps {
     setActiveTab?: (tab: string) => void;
 }
 
+// Separate Modal for Better Performance (Prevents typing lag)
+const CreateTenantModal = ({ onClose, onSuccess }: { onClose: () => void, onSuccess: () => void }) => {
+    const [newName, setNewName] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [newPlan, setNewPlan] = useState('lite');
+    const [newWhatsApp, setNewWhatsApp] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await axiosInstance.post('/admin/', {
+                name: newName,
+                email: newEmail,
+                password: newPassword,
+                plan: newPlan,
+                whatsapp_enabled: newWhatsApp
+            });
+            onSuccess();
+            onClose();
+        } catch (err: any) {
+            alert(err.response?.data?.detail || 'Error al crear inmobiliaria');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] w-full max-w-lg shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+            >
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 className="text-3xl font-black text-white tracking-tight">Nueva Inmobiliaria</h2>
+                        <p className="text-slate-500 text-xs uppercase font-bold tracking-widest mt-1">Alta de Cliente SaaS</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+                        <X className="w-6 h-6 text-slate-500 hover:text-white" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-5">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Nombre Comercial</label>
+                            <input required className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold focus:ring-2 ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-700" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ej: Inmobiliaria Central" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Email Principal</label>
+                            <input type="email" required className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold focus:ring-2 ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-700" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="admin@ejemplo.com" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Contraseña de Acceso</label>
+                            <input type="password" required className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold focus:ring-2 ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-700" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Plan</label>
+                                <select className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-blue-500/50" value={newPlan} onChange={e => setNewPlan(e.target.value)}>
+                                    <option value="lite" className="bg-slate-900">Lite</option>
+                                    <option value="basic" className="bg-slate-900">Básico</option>
+                                    <option value="premium" className="bg-slate-900">Premium</option>
+                                </select>
+                            </div>
+                            <div className="flex items-end pb-3">
+                                <label className="flex items-center space-x-3 cursor-pointer group">
+                                    <input type="checkbox" className="w-6 h-6 rounded-lg border-white/5 bg-slate-950 text-blue-600 focus:ring-blue-500/20" checked={newWhatsApp} onChange={e => setNewWhatsApp(e.target.checked)} />
+                                    <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">WhatsApp Bot</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                        <button type="button" onClick={onClose} className="flex-1 py-4 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:text-white transition-all">Cancelar</button>
+                        <button type="submit" disabled={loading} className="flex-2 px-10 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-500 transition-all font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                            {loading ? <Loader2 className="animate-spin w-4 h-4" /> : "Crear Acceso"}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
+        </div>
+    );
+};
+
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', setActiveTab }) => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [stats, setStats] = useState({ totalContext: 0, active: 0, mrr: 0, errors: 0 });
@@ -26,13 +115,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
     const [showCreate, setShowCreate] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-
-    // Form state for Create
-    const [newName, setNewName] = useState('');
-    const [newEmail, setNewEmail] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [newPlan, setNewPlan] = useState('lite');
-    const [newWhatsApp, setNewWhatsApp] = useState(false);
 
     // Form state for Edit
     const [editName, setEditName] = useState('');
@@ -50,18 +132,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
         try {
             const res = await axiosInstance.get('/admin/');
             setTenants(res.data);
-            // Calcular stats básicas
             const active = res.data.filter((t: Tenant) => t.is_active).length;
             const mrr = res.data.reduce((acc: number, t: Tenant) => {
-                const price = t.plan === 'premium' ? 29900 : t.plan === 'basic' ? 14900 : 0; // Precios ejemplo
+                const price = t.plan === 'premium' ? 29900 : t.plan === 'basic' ? 14900 : 0;
                 return acc + price;
             }, 0);
-            setStats({
-                totalContext: res.data.length,
-                active,
-                mrr,
-                errors: res.data.filter((t: Tenant) => !t.is_active).length // Dummies
-            });
+            setStats({ totalContext: res.data.length, active, mrr, errors: res.data.filter((t: Tenant) => !t.is_active).length });
         } catch (err) {
             console.error(err);
         }
@@ -70,25 +146,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
     useEffect(() => {
         fetchTenants();
     }, []);
-
-    const handleCreateTenant = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await axiosInstance.post('/admin/', {
-                name: newName,
-                email: newEmail,
-                password: newPassword,
-                plan: newPlan,
-                whatsapp_enabled: newWhatsApp
-            });
-            setShowCreate(false);
-            setNewName(''); setNewEmail(''); setNewPassword('');
-            fetchTenants();
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.detail || 'Error al crear inmobiliaria';
-            alert(errorMsg);
-        }
-    };
 
     const openEditModal = (tenant: Tenant) => {
         setSelectedTenant(tenant);
@@ -135,7 +192,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
 
     const handleConfirmForceDelete = async () => {
         if (!tenantToDelete || confirmName !== tenantToDelete.name) return;
-
         setIsDeleting(true);
         try {
             await axiosInstance.delete(`/admin/tenants/${tenantToDelete.id}/force`);
@@ -151,10 +207,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
 
     const handleExportTenant = async (tenant: Tenant) => {
         try {
-            const response = await axiosInstance.get(`/reports/admin/export-movements/${tenant.id}`, {
-                responseType: 'blob',
-            });
-
+            const response = await axiosInstance.get(`/reports/admin/export-movements/${tenant.id}`, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -169,7 +222,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
         }
     };
 
-    // Renderizado del Dashboard de KPIs
     if (view === 'dashboard') {
         return (
             <div className="space-y-8">
@@ -179,61 +231,57 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                     <MetricCard title="Total Registradas" value={stats.totalContext.toString()} icon={Shield} color="purple" />
                     <MetricCard title="Alertas / Suspendidas" value={stats.errors.toString()} icon={AlertTriangle} color="red" />
                 </div>
-
-                <div className="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold">Últimas Inmobiliarias</h2>
-                        <button onClick={() => setActiveTab && setActiveTab('tenants')} className="text-blue-600 font-bold text-sm hover:underline">Ver todas</button>
+                <div className="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-2xl">
+                    <div className="flex justify-between items-center mb-10">
+                        <div>
+                            <h2 className="text-2xl font-black tracking-tight">Últimas Inmobiliarias</h2>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Actividad reciente del sistema</p>
+                        </div>
+                        <button onClick={() => setActiveTab && setActiveTab('tenants')} className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Ver todas</button>
                     </div>
-                    <TenantTable
-                        tenants={tenants.slice(0, 5)}
-                        compact
-                        onEdit={openEditModal}
-                        onToggleStatus={handleToggleStatus}
-                        onDelete={handleDeleteTenant}
-                        onExport={handleExportTenant}
-                    />
+                    <TenantTable tenants={tenants.slice(0, 5)} compact onEdit={openEditModal} onToggleStatus={handleToggleStatus} onDelete={handleDeleteTenant} onExport={handleExportTenant} />
                 </div>
             </div>
         );
     }
 
-    // Renderizado de la Lista de Gestión (view === 'list')
     const filteredTenants = tenants.filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold">Gestión de Inmobiliarias</h1>
-                    <p className="text-slate-500 text-sm">Control total de accesos y servicios.</p>
-                </div>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl flex items-center space-x-2 transition-all shadow-lg shadow-blue-500/20 font-bold"
-                >
-                    <Plus className="w-5 h-5" />
-                    <span>Alta Inmobiliaria</span>
-                </button>
+        <div className="space-y-10">
+            <div className="mb-12">
+                <h1 className="text-5xl font-black text-white mb-2 tracking-tighter">
+                    Gestión de <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Inmobiliarias</span>
+                </h1>
+                <p className="text-slate-500 text-lg font-medium">Control total de accesos, planes y servicios SaaS</p>
             </div>
 
-            <div className="flex space-x-4 mb-6">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-4 rounded-3xl flex flex-wrap items-center gap-4 shadow-2xl">
+                <div className="flex-1 relative min-w-[300px]">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre o email..."
-                        className="w-full bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 pl-12 pr-4 py-3 rounded-2xl outline-none focus:ring-2 ring-blue-500 transition-all font-medium"
+                        placeholder="Buscar por nombre, email o ID..."
+                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl pl-12 pr-4 py-3.5 text-white font-medium focus:outline-none focus:border-blue-500/50 transition-all outline-none placeholder:text-slate-700"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button className="px-4 py-3 bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center space-x-2 text-slate-500 font-bold hover:text-blue-600">
-                    <Filter className="w-5 h-5" />
-                    <span>Filtros</span>
+
+                <button className="px-6 py-3.5 bg-slate-950/50 border border-slate-800 rounded-2xl flex items-center space-x-2 text-slate-400 font-bold hover:text-white hover:border-slate-700 transition-all text-sm">
+                    <Filter className="w-4 h-4" />
+                    <span>Filtros Avanzados</span>
+                </button>
+
+                <button
+                    onClick={() => setShowCreate(true)}
+                    className="bg-blue-600 hover:bg-blue-50 text-white hover:text-blue-600 px-8 py-3.5 rounded-2xl flex items-center space-x-3 transition-all shadow-lg shadow-blue-600/20 font-black text-sm active:scale-95 ml-auto"
+                >
+                    <Plus className="w-5 h-5 stroke-[3]" />
+                    <span>AGREGAR INMOBILIARIA</span>
                 </button>
             </div>
 
@@ -245,60 +293,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                 onExport={handleExportTenant}
             />
 
-            {/* Modal de Creación */}
             <AnimatePresence>
-                {showCreate && (
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] w-full max-w-lg shadow-2xl"
-                        >
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold">Nueva Inmobiliaria</h2>
-                                <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                                    <X className="w-6 h-6 text-slate-400" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleCreateTenant} className="space-y-5">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-bold mb-2">Nombre Comercial</label>
-                                        <input required className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 focus:ring-2 ring-blue-500 outline-none transition-all" value={newName} onChange={e => setNewName(e.target.value)} />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-bold mb-2">Email Admin</label>
-                                        <input type="email" required className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 focus:ring-2 ring-blue-500 outline-none transition-all" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-sm font-bold mb-2">Contraseña</label>
-                                        <input type="password" required className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 focus:ring-2 ring-blue-500 outline-none transition-all" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2">Plan</label>
-                                        <select className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3.5 outline-none" value={newPlan} onChange={e => setNewPlan(e.target.value)}>
-                                            <option value="lite">Lite</option>
-                                            <option value="basic">Básico</option>
-                                            <option value="premium">Premium</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex items-end pb-3">
-                                        <label className="flex items-center space-x-3 cursor-pointer">
-                                            <input type="checkbox" className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500" checked={newWhatsApp} onChange={e => setNewWhatsApp(e.target.checked)} />
-                                            <span className="text-sm font-bold">Habilitar WhatsApp</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div className="flex space-x-3 pt-4">
-                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-4 border border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-bold">Cancelar</button>
-                                    <button type="submit" className="flex-1 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-500 transition-all font-bold shadow-lg shadow-blue-500/20">Crear Acceso</button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
+                {showCreate && <CreateTenantModal onClose={() => setShowCreate(false)} onSuccess={fetchTenants} />}
             </AnimatePresence>
 
             {/* Modal de Edición */}
@@ -412,7 +408,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ view = 'dashboard', set
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

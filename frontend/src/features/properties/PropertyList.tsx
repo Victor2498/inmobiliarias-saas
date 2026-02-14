@@ -62,31 +62,33 @@ const PropertyList: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 max-w-[1600px] mx-auto">
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-6">
-                <div>
-                    <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
-                        Gestión de <span className="text-blue-500">Propiedades</span>
-                    </h1>
-                    <p className="text-slate-400 text-lg">Control total de tu inventario inmobiliario</p>
+        <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+            {/* Header Row: Title and Subtitle */}
+            <div className="mb-12">
+                <h1 className="text-5xl font-black text-white mb-2 tracking-tighter">
+                    Gestión de <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Propiedades</span>
+                </h1>
+                <p className="text-slate-500 text-lg font-medium">Control centralizado de tu inventario inmobiliario</p>
+            </div>
+
+            {/* Controls Row: Single line glassmorphism toolbar */}
+            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-4 rounded-3xl mb-10 flex flex-wrap items-center gap-4 shadow-2xl">
+                <div className="relative flex-1 min-w-[300px]">
+                    <Plus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 rotate-45" size={20} />
+                    <input
+                        type="text"
+                        placeholder="Buscar por título, dirección o referencia..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-white font-medium focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-600"
+                    />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
-                    <div className="relative flex-1 min-w-[200px] md:min-w-[300px]">
-                        <input
-                            type="text"
-                            placeholder="Buscar por título o dirección..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                        />
-                        <Plus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 rotate-45" size={20} />
-                    </div>
-
+                <div className="flex items-center gap-3">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 transition-all cursor-pointer shadow-lg"
+                        className="bg-slate-950/50 border border-slate-800 text-white px-5 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all cursor-pointer font-bold text-sm"
                     >
                         <option value="ALL">Todos los Estados</option>
                         <option value="AVAILABLE">Disponible</option>
@@ -97,36 +99,36 @@ const PropertyList: React.FC = () => {
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 transition-all cursor-pointer shadow-lg"
+                        className="bg-slate-950/50 border border-slate-800 text-white px-5 py-3.5 rounded-2xl focus:outline-none focus:border-blue-500/50 transition-all cursor-pointer font-bold text-sm"
                     >
                         <option value="newest">Más recientes</option>
                         <option value="price_asc">Precio: Bajo a Alto</option>
                         <option value="price_desc">Precio: Alto a Bajo</option>
                     </select>
 
-                    <div className="bg-slate-800 p-1 rounded-2xl border border-slate-700 flex shadow-inner">
+                    <div className="bg-slate-950/50 p-1 rounded-2xl border border-slate-800 flex">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'}`}
+                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             <Home size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('table')}
-                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'}`}
+                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             <Edit size={20} className="rotate-90" />
                         </button>
                     </div>
-
-                    <button
-                        onClick={handleCreate}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl flex items-center space-x-2 transition-all shadow-xl shadow-blue-500/20 font-black"
-                    >
-                        <Plus size={24} />
-                        <span>AGREGAR</span>
-                    </button>
                 </div>
+
+                <button
+                    onClick={handleCreate}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-2xl flex items-center space-x-3 transition-all shadow-lg shadow-blue-600/20 font-black text-sm active:scale-95 ml-auto"
+                >
+                    <Plus size={22} strokeWidth={3} />
+                    <span>AGREGAR PROPIEDAD</span>
+                </button>
             </div>
 
             {loading ? (

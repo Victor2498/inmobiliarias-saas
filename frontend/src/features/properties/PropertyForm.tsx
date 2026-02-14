@@ -123,7 +123,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onClose, onSucces
                     placeholder={placeholder}
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="w-full bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 placeholder:text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/60"
+                    className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white font-semibold placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 outline-none transition-all hover:bg-slate-900/60"
                 />
             )}
         </div>
