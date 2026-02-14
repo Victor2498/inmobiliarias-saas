@@ -10,7 +10,7 @@ const DashboardLayout: React.FC = () => {
 
     // Redirección inmediata si el usuario es SuperAdmin para evitar "flashear" el panel de inmobiliaria
     if (user?.role === 'SUPERADMIN') {
-        return <Navigate to="/superadmin" replace />;
+        return <Navigate to="/admin" replace />;
     }
 
     return (

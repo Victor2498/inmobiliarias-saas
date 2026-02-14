@@ -38,7 +38,7 @@ const LoginPage: React.FC = () => {
             setAuth(data.access_token, data.user);
 
             if (data.user.role === 'SUPERADMIN') {
-                navigate('/superadmin');
+                navigate('/admin');
             } else {
                 navigate('/dashboard');
             }

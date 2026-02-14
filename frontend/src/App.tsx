@@ -1,9 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import DashboardLayout from './features/dashboard/DashboardLayout';
 import DashboardHome from './features/dashboard/DashboardHome';
 import PropertyList from './features/properties/PropertyList';
-import AuthGuard from './features/auth/AuthGuard';
 import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
 import TenantManagement from './features/billing/TenantManagement';
@@ -20,8 +19,23 @@ import { useAuthStore } from './store/useAuthStore';
 const RootRedirect: React.FC = () => {
   const { user, token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
-  if (user?.role === 'SUPERADMIN') return <Navigate to="/superadmin" replace />;
+  if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
   return <Navigate to="/dashboard" replace />;
+};
+
+// Guardias de Rol específicos
+const AdminGuard: React.FC = () => {
+  const { user, token } = useAuthStore();
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role !== 'SUPERADMIN') return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
+};
+
+const TenantGuard: React.FC = () => {
+  const { user, token } = useAuthStore();
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
+  return <Outlet />;
 };
 
 const App: React.FC = () => {
@@ -36,10 +50,13 @@ const App: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/verify" element={<VerifyEmail />} />
 
-            {/* Rutas Protegidas */}
-            <Route element={<AuthGuard />}>
-              <Route path="/superadmin" element={<AdminLayout />} />
+            {/* Rutas Protegidas de Admin */}
+            <Route element={<AdminGuard />}>
+              <Route path="/admin" element={<AdminLayout />} />
+            </Route>
 
+            {/* Rutas Protegidas de Inmobiliaria */}
+            <Route element={<TenantGuard />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<DashboardHome />} />
                 <Route path="/properties" element={<PropertyList />} />
@@ -50,14 +67,10 @@ const App: React.FC = () => {
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
-
-              {/* Redirección raíz dentro del AuthGuard pero fuera de los Layouts específicos si es necesario, 
-                  o simplemente dejar que el RootRedirect maneje la lógica global */}
-              <Route path="/" element={<RootRedirect />} />
             </Route>
 
-            <Route path="*" element={<RootRedirect />} />
-
+            {/* Redirección raíz y wildcard */}
+            <Route path="/" element={<RootRedirect />} />
             <Route path="*" element={<RootRedirect />} />
           </Routes>
         </BrowserRouter>
