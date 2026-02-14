@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Property, PropertyService } from './PropertyService';
-import { Plus, Edit, Trash2, MapPin, DollarSign, Home } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Home } from 'lucide-react';
 import PropertyForm from './PropertyForm';
 
 const PropertyList: React.FC = () => {
@@ -9,14 +9,20 @@ const PropertyList: React.FC = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState<Property | undefined>();
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('ALL');
+    const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'newest'>('newest');
 
     useEffect(() => {
         loadProperties();
     }, []);
 
     const loadProperties = async () => {
+        setLoading(true);
         try {
+            console.log("Fetching properties...");
             const data = await PropertyService.list();
+            console.log("Properties received:", data);
             setProperties(data);
         } catch (error) {
             console.error("Error loading properties", error);
@@ -24,6 +30,19 @@ const PropertyList: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const filteredProperties = properties
+        .filter(p => {
+            const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.address.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => {
+            if (sortBy === 'price_asc') return a.price - b.price;
+            if (sortBy === 'price_desc') return b.price - a.price;
+            return (b.id || 0) - (a.id || 0);
+        });
 
     const handleCreate = () => {
         setSelectedProperty(undefined);
@@ -43,89 +62,139 @@ const PropertyList: React.FC = () => {
     };
 
     return (
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="p-4 md:p-8 max-w-[1600px] mx-auto">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-1">Gestión de Propiedades</h1>
-                    <p className="text-slate-400 text-sm">Administra el inventario de inmuebles de tu inmobiliaria</p>
+                    <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
+                        Gestión de <span className="text-blue-500">Propiedades</span>
+                    </h1>
+                    <p className="text-slate-400 text-lg">Control total de tu inventario inmobiliario</p>
                 </div>
 
-                <div className="flex items-center space-x-4 w-full md:w-auto">
-                    <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex">
+                <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+                    <div className="relative flex-1 min-w-[200px] md:min-w-[300px]">
+                        <input
+                            type="text"
+                            placeholder="Buscar por título o dirección..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        />
+                        <Plus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 rotate-45" size={20} />
+                    </div>
+
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 transition-all cursor-pointer shadow-lg"
+                    >
+                        <option value="ALL">Todos los Estados</option>
+                        <option value="AVAILABLE">Disponible</option>
+                        <option value="RENTED">Alquilado</option>
+                        <option value="SOLD">Vendido</option>
+                    </select>
+
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-2xl focus:outline-none focus:border-blue-500 transition-all cursor-pointer shadow-lg"
+                    >
+                        <option value="newest">Más recientes</option>
+                        <option value="price_asc">Precio: Bajo a Alto</option>
+                        <option value="price_desc">Precio: Alto a Bajo</option>
+                    </select>
+
+                    <div className="bg-slate-800 p-1 rounded-2xl border border-slate-700 flex shadow-inner">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'}`}
+                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'}`}
                         >
-                            Cuadrícula
+                            <Home size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('table')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'}`}
+                            className={`p-2.5 rounded-xl transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-500 hover:text-white'}`}
                         >
-                            Tabla
+                            <Edit size={20} className="rotate-90" />
                         </button>
                     </div>
 
                     <button
                         onClick={handleCreate}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-emerald-500/20 font-bold"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl flex items-center space-x-2 transition-all shadow-xl shadow-blue-500/20 font-black"
                     >
-                        <Plus size={20} />
-                        <span>Nueva Propiedad</span>
+                        <Plus size={24} />
+                        <span>AGREGAR</span>
                     </button>
                 </div>
             </div>
 
             {loading ? (
-                <div className="flex items-center justify-center p-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="flex flex-col items-center justify-center p-32">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                    <span className="text-slate-400 font-medium animate-pulse">Cargando inventario...</span>
                 </div>
-            ) : properties.length === 0 ? (
-                <div className="bg-slate-800/50 border border-slate-700 border-dashed rounded-2xl p-20 text-center">
-                    <div className="bg-slate-700/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Home size={32} className="text-slate-500" />
+            ) : filteredProperties.length === 0 ? (
+                <div className="bg-slate-800/30 border-2 border-slate-700/50 border-dashed rounded-[2.5rem] p-24 text-center backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-slate-700 to-slate-800 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-3 transform hover:rotate-0 transition-transform duration-500">
+                        <Home size={48} className="text-slate-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">No hay propiedades registradas</h3>
-                    <p className="text-slate-400 mb-6">Comienza agregando tu primera propiedad al sistema.</p>
-                    <button onClick={handleCreate} className="text-blue-400 hover:text-blue-300 font-bold underline">Agregar propiedad</button>
+                    <h3 className="text-3xl font-black text-white mb-4">¡Tu inventario está vacío!</h3>
+                    <p className="text-slate-400 text-lg mb-10 max-w-md mx-auto">Parece que aún no has registrado ninguna propiedad. Comienza agregando la primera ahora mismo.</p>
+                    <button
+                        onClick={handleCreate}
+                        className="bg-white text-slate-900 border-none px-10 py-4 rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-2xl active:scale-95"
+                    >
+                        Crear Propiedad
+                    </button>
                 </div>
             ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {properties.map((prop) => (
-                        <div key={prop.id} className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all group flex flex-col shadow-xl">
-                            <div className="h-48 bg-slate-900 flex items-center justify-center text-slate-700 relative overflow-hidden">
-                                <Home size={64} className="group-hover:scale-110 transition-transform duration-500 opacity-20" />
-                                <div className="absolute top-4 right-4">
-                                    <span className={`text-[10px] px-2.5 py-1 rounded-full uppercase font-black tracking-wider ${prop.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-700 text-slate-400'
-                                        }`}>
-                                        {prop.status}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+                    {filteredProperties.map((prop) => (
+                        <div key={prop.id} className="bg-slate-800/80 border border-slate-700/50 rounded-[2rem] overflow-hidden hover:border-blue-500/50 transition-all group flex flex-col shadow-2xl backdrop-blur-sm relative hover:-translate-y-2 duration-300">
+                            <div className="h-56 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center text-slate-700 relative overflow-hidden">
+                                <img
+                                    src={`https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800&auto=format&fit=crop`}
+                                    alt={prop.title}
+                                    className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500"
+                                />
+                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-800 to-transparent" />
+                                <div className="absolute top-5 left-5">
+                                    <span className={`text-[10px] px-3 py-1.5 rounded-xl uppercase font-black tracking-widest backdrop-blur-md border ${prop.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-900/40 text-slate-400 border-slate-700'}`}>
+                                        {prop.status === 'AVAILABLE' ? 'Disponible' : prop.status}
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-5 flex-1 flex flex-col">
-                                <div className="mb-4">
-                                    <h3 className="text-lg font-bold text-white group-hover:text-blue-400 mb-1 line-clamp-1">{prop.title}</h3>
-                                    <div className="flex items-center text-slate-500 text-xs">
-                                        <MapPin size={12} className="mr-1" />
-                                        <span className="line-clamp-1">{prop.address}</span>
+
+                            <div className="p-6 flex-1 flex flex-col">
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-black text-white group-hover:text-blue-400 mb-2 line-clamp-1 transition-colors">{prop.title}</h3>
+                                    <div className="flex items-start text-slate-400 text-sm">
+                                        <MapPin size={16} className="mr-2 mt-0.5 text-blue-500 shrink-0" />
+                                        <span className="line-clamp-2">{prop.address}</span>
                                     </div>
                                 </div>
-                                <div className="mt-auto flex justify-between items-center">
-                                    <div className="text-emerald-400 font-black text-xl">
-                                        <span className="text-sm mr-1">{prop.currency}</span>
-                                        {prop.price.toLocaleString()}
+
+                                <div className="mt-auto flex justify-between items-end">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Precio</span>
+                                        <div className="text-white font-black text-2xl flex items-baseline">
+                                            <span className="text-sm text-blue-500 mr-1.5">{prop.currency}</span>
+                                            {prop.price.toLocaleString()}
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-1">
+
+                                    <div className="flex space-x-2">
                                         <button
                                             onClick={() => handleEdit(prop)}
-                                            className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
+                                            className="w-10 h-10 flex items-center justify-center bg-slate-700/50 text-slate-300 hover:text-white hover:bg-blue-600 rounded-xl transition-all shadow-lg"
                                             title="Editar"
                                         >
                                             <Edit size={18} />
                                         </button>
                                         <button
                                             onClick={() => prop.id && handleDelete(prop.id)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                            className="w-10 h-10 flex items-center justify-center bg-slate-700/50 text-slate-300 hover:text-white hover:bg-red-600 rounded-xl transition-all shadow-lg"
                                             title="Eliminar"
                                         >
                                             <Trash2 size={18} />
@@ -137,53 +206,55 @@ const PropertyList: React.FC = () => {
                     ))}
                 </div>
             ) : (
-                <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-slate-800/40 border border-slate-700/50 rounded-[2rem] overflow-hidden shadow-2xl backdrop-blur-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-slate-900/50 border-b border-slate-700">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Inmueble</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Ubicación</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Precio</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Estado</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+                            <thead>
+                                <tr className="bg-slate-900/80 border-b border-slate-700">
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Inmueble</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Ubicación</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Precio</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Estado</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-700/50">
-                                {properties.map((prop) => (
-                                    <tr key={prop.id} className="hover:bg-slate-700/30 transition-colors group">
-                                        <td className="px-6 py-4">
+                            <tbody className="divide-y divide-slate-700/30">
+                                {filteredProperties.map((prop) => (
+                                    <tr key={prop.id} className="hover:bg-blue-500/5 transition-colors group">
+                                        <td className="px-8 py-6">
                                             <div className="flex items-center">
-                                                <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center text-slate-400 mr-3 shrink-0">
-                                                    <Home size={20} />
+                                                <div className="w-14 h-14 bg-slate-700 rounded-2xl overflow-hidden mr-4 shrink-0 shadow-lg">
+                                                    <img
+                                                        src={`https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=200&auto=format&fit=crop`}
+                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                                                    />
                                                 </div>
-                                                <span className="font-semibold text-white group-hover:text-blue-400 transition-colors">{prop.title}</span>
+                                                <span className="font-bold text-white text-lg group-hover:text-blue-400 transition-colors">{prop.title}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-400 text-sm">{prop.address}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="font-bold text-emerald-400 text-lg">
-                                                <span className="text-xs mr-1">{prop.currency}</span>
+                                        <td className="px-8 py-6 text-slate-400 font-medium">{prop.address}</td>
+                                        <td className="px-8 py-6">
+                                            <div className="font-black text-white text-xl">
+                                                <span className="text-sm text-blue-500 mr-1">{prop.currency}</span>
                                                 {prop.price.toLocaleString()}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-black ${prop.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-700 text-slate-400'
-                                                }`}>
-                                                {prop.status}
+                                        <td className="px-8 py-6">
+                                            <span className={`text-[10px] px-3 py-1.5 rounded-xl uppercase font-black tracking-widest border ${prop.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/30 text-slate-500 border-slate-700/50'}`}>
+                                                {prop.status === 'AVAILABLE' ? 'Disponible' : prop.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end space-x-2">
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => handleEdit(prop)}
-                                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-xl transition-all"
+                                                    className="p-3 bg-slate-700 hover:bg-blue-600 text-slate-300 hover:text-white rounded-xl transition-all shadow-lg"
                                                 >
                                                     <Edit size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => prop.id && handleDelete(prop.id)}
-                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                    className="p-3 bg-slate-700 hover:bg-red-600 text-slate-300 hover:text-white rounded-xl transition-all shadow-lg"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>

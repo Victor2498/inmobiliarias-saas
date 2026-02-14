@@ -1,7 +1,10 @@
+import logging
 from typing import Generic, TypeVar, Type, List, Optional, Any
 from sqlalchemy.orm import Session, Query
 from app.domain.models.tenant import TenantModel
 from app.infrastructure.security.tenant_context import get_current_tenant_id
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=TenantModel)
 
@@ -19,9 +22,10 @@ class BaseRepository(Generic[T]):
         query = self.db.query(self.model)
         if hasattr(self.model, 'tenant_id'):
             if tenant_id:
+                logger.debug(f"Filtering {self.model.__tablename__} by tenant_id='{tenant_id}'")
                 query = query.filter(self.model.tenant_id == tenant_id)
             else:
-                # Si no hay tenant_id y el modelo lo requiere, filtramos para que no devuelva nada
+                logger.warning(f"NO TENANT_ID found in context for {self.model.__tablename__}")
                 query = query.filter(False)
         return query
 

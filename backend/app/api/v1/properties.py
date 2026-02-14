@@ -15,8 +15,11 @@ def list_properties(
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
+    print(f"DEBUG: list_properties - User: {current_user.email}, TenantID: {current_user.tenant_id}")
     service = PropertyService(db)
-    return service.list_properties(skip=skip, limit=limit)
+    props = service.list_properties(skip=skip, limit=limit)
+    print(f"DEBUG: list_properties - Count: {len(props)}")
+    return props
 
 @router.get("/{property_id}", response_model=PropertyResponse)
 def get_property(property_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
