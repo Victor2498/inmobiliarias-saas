@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Home, Building2, Users, FileText, TrendingUp, Calendar } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const DashboardHome: React.FC = () => {
+    const { user } = useAuthStore();
     const [tenantName, setTenantName] = useState('Inmobiliaria');
+
+    // Bloqueo de emergencia para SuperAdmin en esta vista
+    if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
     const [stats, setStats] = useState({
         properties: 0,
         contracts: 0,

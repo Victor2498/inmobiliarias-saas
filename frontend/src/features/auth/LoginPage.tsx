@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
     React.useEffect(() => {
         if (token && user) {
             if (user.role === 'SUPERADMIN') {
-                navigate('/superadmin');
+                navigate('/admin');
             } else {
                 navigate('/dashboard');
             }
@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl py-5 pl-14 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all font-medium"
-                                    placeholder="Email, Usuario o Inmobiliaria"
+                                    placeholder="Usuario o Email"
                                 />
                             </div>
                         </div>
