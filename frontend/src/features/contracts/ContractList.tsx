@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Contract, ContractService } from './ContractService';
-import { FileText, Calendar, Clock, DollarSign } from 'lucide-react';
+import { FileText, Calendar, Clock, DollarSign, Plus, Pencil } from 'lucide-react';
 
 const ContractList: React.FC = () => {
     const [contracts, setContracts] = useState<Contract[]>([]);
@@ -40,9 +41,16 @@ const ContractList: React.FC = () => {
 
     return (
         <div className="p-6 space-y-8">
-            <header className="flex justify-between items-center">
+            <header className="flex justify-between items-center flex-wrap gap-4">
                 <h1 className="text-3xl font-black text-white">Contratos de Alquiler</h1>
 
+                <div className="flex items-center gap-3">
+                    <Link
+                        to="/contracts/new"
+                        className="px-4 py-2.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                    >
+                        <Plus size={18} /> Nuevo contrato
+                    </Link>
                 <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex items-center space-x-4 shadow-xl">
                     <div className="flex items-center space-x-2 px-3">
                         <select
@@ -69,6 +77,7 @@ const ContractList: React.FC = () => {
                         {generating ? 'Procesando...' : 'Liquidación Mensual'}
                     </button>
                 </div>
+                </div>
             </header>
 
             <div className="space-y-4">
@@ -87,14 +96,23 @@ const ContractList: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="text-right">
-                            <div className="text-xl font-bold text-white flex items-center justify-end">
-                                <DollarSign size={18} className="text-emerald-500" />
-                                {contract.monthly_rent.toLocaleString()} {contract.currency}
+                        <div className="text-right flex items-center gap-4">
+                            <div>
+                                <div className="text-xl font-bold text-white flex items-center justify-end">
+                                    <DollarSign size={18} className="text-emerald-500" />
+                                    {(contract.current_rent ?? contract.monthly_rent).toLocaleString()} {contract.currency}
+                                </div>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${contract.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                    {contract.status}
+                                </span>
                             </div>
-                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${contract.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                {contract.status}
-                            </span>
+                            <Link
+                                to={`/contracts/${contract.id}/edit`}
+                                className="p-2 rounded-lg border border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white transition-all"
+                                title="Editar"
+                            >
+                                <Pencil size={18} />
+                            </Link>
                         </div>
                     </div>
                 ))}

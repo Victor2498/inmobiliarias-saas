@@ -7,6 +7,7 @@ import WhatsAppDashboard from './features/whatsapp/WhatsAppDashboard';
 import PeopleList from './features/people/PeopleList';
 import TenantManagement from './features/billing/TenantManagement';
 import LiquidationWizard from './features/billing/LiquidationWizard';
+import ContractForm from './features/contracts/ContractForm';
 import SaaSPlans from './features/subscription/SaaSPlans';
 import SettingsPage from './features/settings/SettingsPage';
 import LoginPage from './features/auth/LoginPage';
@@ -63,6 +64,8 @@ const App: React.FC = () => {
                 <Route path="/whatsapp" element={<WhatsAppDashboard />} />
                 <Route path="/people" element={<PeopleList />} />
                 <Route path="/multitenant" element={<TenantManagement />} />
+                <Route path="/contracts/new" element={<ContractForm />} />
+                <Route path="/contracts/:id/edit" element={<ContractForm />} />
                 <Route path="/billing/new" element={<LiquidationWizard />} />
                 <Route path="/subscription" element={<SaaSPlans />} />
                 <Route path="/settings" element={<SettingsPage />} />
