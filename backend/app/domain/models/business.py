@@ -42,8 +42,11 @@ class ContractModel(Base):
     monthly_rent = Column(Float)
     currency = Column(String, default="ARS")
     current_rent = Column(Float)
-    adjustment_period = Column(Integer)
+    base_amount = Column(Float, nullable=True)  # Monto base para ajuste por índice
+    adjustment_type = Column(String, default="ICL", index=True)  # ICL, IPC, FIJO
+    adjustment_period = Column(Integer)  # Frecuencia en meses
     last_adjustment_date = Column(DateTime)
+    next_expiration_notification_sent = Column(Boolean, default=False)
     status = Column(String, default="ACTIVE", index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     

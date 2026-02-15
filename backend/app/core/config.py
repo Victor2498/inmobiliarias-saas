@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     
     # Seguridad
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-me")
+    CRON_SECRET: str = os.getenv("CRON_SECRET", "")  # Si vacío, se usa SECRET_KEY para /cron/daily-check
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "*")

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, Building2, Users, FileText, TrendingUp, Calendar } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Home, Building2, Users, FileText, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { Navigate, Link } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { useAuthStore } from '../../store/useAuthStore';
+import { ContractService, Contract } from '../contracts/ContractService';
 
 const DashboardHome: React.FC = () => {
     const { user } = useAuthStore();
     const [tenantName, setTenantName] = useState('Inmobiliaria');
+    const [adjustmentsThisMonth, setAdjustmentsThisMonth] = useState<Contract[]>([]);
 
     // Bloqueo de emergencia para SuperAdmin en esta vista
     if (user?.role === 'SUPERADMIN') return <Navigate to="/admin" replace />;
@@ -20,20 +22,24 @@ const DashboardHome: React.FC = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                // Intentar obtener perfil/configuración del tenant para el nombre
                 const profileRes = await axiosInstance.get('/auth/me');
                 if (profileRes.data.tenant && profileRes.data.tenant.name) {
                     setTenantName(profileRes.data.tenant.name);
                 }
 
-                // Obtener stats básicas (simuladas o reales si existen los endpoints)
-                const propRes = await axiosInstance.get('/properties');
-                const peopleRes = await axiosInstance.get('/people');
+                const [propRes, peopleRes, contractsRes] = await Promise.all([
+                    axiosInstance.get('/properties'),
+                    axiosInstance.get('/people'),
+                    axiosInstance.get('/contracts/')
+                ]);
                 setStats({
                     properties: propRes.data.length || 0,
-                    contracts: 0, // Placeholder
+                    contracts: contractsRes.data.length || 0,
                     clients: peopleRes.data.length || 0
                 });
+
+                const adjustments = await ContractService.getAdjustmentsThisMonth();
+                setAdjustmentsThisMonth(adjustments);
             } catch (err) {
                 console.error("Error al cargar datos del dashboard:", err);
             }
@@ -107,6 +113,37 @@ const DashboardHome: React.FC = () => {
                     variants={itemVariants}
                 />
             </div>
+
+            {/* Ajustes del mes */}
+            <motion.div
+                variants={itemVariants}
+                className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm"
+            >
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                    <DollarSign className="text-emerald-600 dark:text-emerald-400" />
+                    Ajustes del mes
+                </h2>
+                {adjustmentsThisMonth.length === 0 ? (
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">No hay contratos con ajuste en el mes actual.</p>
+                ) : (
+                    <ul className="space-y-3">
+                        {adjustmentsThisMonth.map((c) => (
+                            <li key={c.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                                <div>
+                                    <span className="font-semibold text-slate-800 dark:text-white">Contrato #{c.id}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 text-sm ml-2">
+                                        {c.last_adjustment_date ? new Date(c.last_adjustment_date).toLocaleDateString('es-AR') : ''}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
+                                    {(c.current_rent ?? c.monthly_rent)?.toLocaleString()} {c.currency}
+                                </div>
+                                <Link to={`/contracts/${c.id}/edit`} className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">Ver</Link>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </motion.div>
 
             {/* Sección de Accesos Rápidos o Actividad Reciente */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

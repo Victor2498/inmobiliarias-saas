@@ -6,6 +6,7 @@ from app.domain.models.base import Base
 from app.domain.models.tenant import TenantModel
 from app.domain.models.user import UserModel
 import app.domain.models.business
+import app.domain.models.economic_indices
 import app.domain.models.whatsapp
 from app.infrastructure.security.hashing import get_password_hash
 from app.core.config import settings
