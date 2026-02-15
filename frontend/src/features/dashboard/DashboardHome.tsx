@@ -73,7 +73,7 @@ const DashboardHome: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                        ¡¡¡Bienvenida, <span className="text-blue-600 dark:text-blue-400">Inmobiliaria {tenantName}</span>!!!
+                        ¡¡¡Bienvenida, <span className="text-blue-600 dark:text-blue-400">{tenantName}</span>!!!
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
                         Aquí tienes un resumen de tu actividad inmobiliaria hoy.
