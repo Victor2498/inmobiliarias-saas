@@ -8,7 +8,6 @@ import { ContractService, Contract } from '../contracts/ContractService';
 
 const DashboardHome: React.FC = () => {
     const { user } = useAuthStore();
-    const [tenantName, setTenantName] = useState('Inmobiliaria');
     const [adjustmentsThisMonth, setAdjustmentsThisMonth] = useState<Contract[]>([]);
 
     // Bloqueo de emergencia para SuperAdmin en esta vista
@@ -22,11 +21,6 @@ const DashboardHome: React.FC = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const profileRes = await axiosInstance.get('/auth/me');
-                if (profileRes.data.tenant && profileRes.data.tenant.commercial_name) {
-                    setTenantName(profileRes.data.tenant.commercial_name);
-                }
-
                 const [propRes, peopleRes, contractsRes] = await Promise.all([
                     axiosInstance.get('/properties'),
                     axiosInstance.get('/people'),
@@ -72,10 +66,13 @@ const DashboardHome: React.FC = () => {
             {/* Cabecera con Saludo Dinámico */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                        ¡¡¡Bienvenida, <span className="text-blue-600 dark:text-blue-400">{tenantName}</span>!!!
+                    <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
+                        <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl text-white shadow-lg shadow-blue-500/30">
+                            <Building2 size={32} />
+                        </div>
+                        ¡Bienvenido a <span className="text-blue-600 dark:text-blue-400">Inmonea</span>!!
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium ml-16">
                         Aquí tienes un resumen de tu actividad inmobiliaria hoy.
                     </p>
                 </div>

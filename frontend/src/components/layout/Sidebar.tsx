@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Home, FileText, MessageSquare, Settings, LogOut, Users, Shield, CreditCard } from 'lucide-react';
+import { Building2, Home, FileText, MessageSquare, Settings, LogOut, Users, Shield, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -32,7 +32,7 @@ const Sidebar: React.FC = () => {
             <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-10 px-4 flex-shrink-0">Inmonea</div>
 
             <nav className="flex-1 space-y-2 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
-                <SidebarItem to="/dashboard" icon={<LayoutDashboard size={22} />} label="Dashboard" active={location.pathname === '/dashboard'} />
+                <SidebarItem to="/dashboard" icon={<Building2 size={22} />} label="Panel Principal" active={location.pathname === '/dashboard'} />
 
                 {user?.role === 'SUPERADMIN' && (
                     <SidebarItem to="/admin" icon={<Shield size={22} />} label="Administración" active={location.pathname === '/admin'} />
