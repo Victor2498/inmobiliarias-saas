@@ -77,7 +77,17 @@ class EvolutionAPIClient:
 
     async def get_qr_code(self, name: str):
         resp = await self._safe_request("GET", f"/instance/connect/{name}")
-        return resp.get("base64") if resp else None
+        if resp and resp.get("base64"):
+            return resp.get("base64")
+        
+        # Si no hay base64, intentar forzar la reconexión
+        logger.warning(f"⚠️ QR no disponible para {name}, intentando forzar...")
+        return None
+
+    async def delete_instance(self, name: str):
+        """Elimina completamente una instancia de Evolution API."""
+        resp = await self._safe_request("DELETE", f"/instance/delete/{name}")
+        return resp is not None
 
     async def get_instance_status(self, name: str):
         resp = await self._safe_request("GET", f"/instance/connectionState/{name}")
@@ -87,11 +97,24 @@ class EvolutionAPIClient:
 
     async def logout_instance(self, name: str):
         # Evolution API v2 suele usar DELETE para logout
-        resp = await self._safe_request("DELETE", f"/instance/logout/{name}")
-        if not resp:
-             # Fallback para versiones nteriores
-             resp = await self._safe_request("POST", f"/instance/logout/{name}")
-        return resp is not None
+        url = f"{self.url}/instance/logout/{name}"
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.delete(url, headers=self.headers)
+                
+                # Si es 200 o 500 con "Connection Closed", lo consideramos éxito local
+                if resp.status_code == 200:
+                    return True
+                
+                if resp.status_code == 500 and "Connection Closed" in resp.text:
+                    logger.warning(f"⚠️ Logout con Connection Closed en {name}, tratándolo como éxito.")
+                    return True
+                
+                logger.error(f"❌ Error en logout ({name}): {resp.status_code} - {resp.text}")
+                return False
+        except Exception as e:
+            logger.error(f"❌ Error de conexión en logout ({name}): {e}")
+            return False
 
     async def send_message(self, instance_name: str, number: str, text: str):
         """Envía un mensaje de texto a un número específico."""

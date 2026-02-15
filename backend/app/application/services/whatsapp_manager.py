@@ -55,11 +55,22 @@ class WhatsAppManagerService:
             })
 
         qr = await whatsapp_client.get_qr_code(instance_name)
+        
+        # SI FALLA EL QR: Probablemente la instancia está en un estado corrupto. 
+        # Forzamos recreación (Delete -> Create)
         if not qr:
-            raise HTTPException(
-                status_code=503, 
-                detail="No se pudo obtener el código QR. Verifique que la API de WhatsApp esté en línea y el token sea correcto."
-            )
+            logger.warning(f"🔄 QR fallido para {instance_name}. Forzando recreación total...")
+            await whatsapp_client.delete_instance(instance_name)
+            
+            # Reintentar creación
+            recreation = await whatsapp_client.create_instance(instance_name)
+            if not recreation:
+                raise HTTPException(status_code=503, detail="Error crítico al recrear instancia de WhatsApp.")
+            
+            # Intentar obtener QR de la nueva instancia
+            qr = await whatsapp_client.get_qr_code(instance_name)
+            if not qr:
+                raise HTTPException(status_code=503, detail="No se pudo obtener el QR después de recrear la instancia.")
             
         return {"qr": qr, "status": "QR_PENDING"}
 
