@@ -21,6 +21,33 @@ def login_admin(data: UserLogin, db: Session = Depends(get_db)):
     service = AuthService(db)
     return service.login_admin(data)
 
+@router.get("/me")
+def get_current_user_info(
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_user_dep)
+):
+    """Obtiene información del usuario actual y su tenant"""
+    from app.domain.models.tenant import TenantModel
+    
+    tenant_data = None
+    if current_user.tenant_id:
+        tenant = db.query(TenantModel).filter(
+            TenantModel.id == current_user.tenant_id
+        ).first()
+        if tenant:
+            tenant_data = {
+                "id": tenant.id,
+                "name": tenant.name,
+                "plan": tenant.plan
+            }
+    
+    return {
+        "email": current_user.email,
+        "role": current_user.role,
+        "tenant_id": current_user.tenant_id,
+        "tenant": tenant_data
+    }
+
 @router.get("/verify-email")
 def verify_email(token: str, db: Session = Depends(get_db)):
     success = VerificationService.verify_email(token, db)
