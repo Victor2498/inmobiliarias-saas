@@ -13,7 +13,8 @@ class OpenAIService:
         if available_properties:
             props_context = "Propiedades destacadas disponibles:\n"
             for p in available_properties[:3]:
-                props_context += f"- {p.title} en {p.address} ({p.type}). Precio: {p.currency} {p.price:,.0f}\n"
+                # PropertyModel has: title, address, price, currency, status, description, features
+                props_context += f"- {p.title} en {p.address}. Precio: {p.currency} {p.price:,.0f}\n"
 
         system_prompt = f"""
         Eres el asistente inteligente de la inmobiliaria "{agency_name}". 

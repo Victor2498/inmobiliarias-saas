@@ -15,7 +15,7 @@ class TenantService:
     def __init__(self, db: Session):
         self.db = db
 
-    def register_tenant(self, name: str, admin_email: EmailStr, admin_password: str, admin_full_name: str):
+    def register_tenant(self, name: str, admin_email: EmailStr, admin_password: str, admin_full_name: str, commercial_name: str | None = None):
         from sqlalchemy import func
         name = name.strip()
         admin_email = admin_email.strip()
@@ -32,6 +32,7 @@ class TenantService:
         new_tenant = TenantModel(
             id=tenant_id,
             name=name,
+            commercial_name=commercial_name or name,  # Use commercial_name if provided, otherwise use name
             # Simple slug generation
             email=admin_email, # Required by model check
             hashed_password="legacy_placeholder", # Legacy field, kept for consistency
@@ -73,6 +74,8 @@ class TenantService:
 
         if "name" in data:
             tenant.name = data["name"]
+        if "commercial_name" in data:
+            tenant.commercial_name = data["commercial_name"]
         if "email" in data:
             tenant.email = data["email"]
             # También actualizar el email del admin principal si coincide? 

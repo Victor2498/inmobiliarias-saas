@@ -38,6 +38,7 @@ def get_current_user_info(
             tenant_data = {
                 "id": tenant.id,
                 "name": tenant.name,
+                "commercial_name": tenant.commercial_name,
                 "plan": tenant.plan
             }
     

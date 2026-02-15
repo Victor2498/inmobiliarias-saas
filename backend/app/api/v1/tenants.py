@@ -10,6 +10,7 @@ router = APIRouter()
 
 class TenantCreate(BaseModel):
     name: str
+    commercial_name: str | None = None
     admin_email: EmailStr
     admin_password: str
     admin_full_name: str
@@ -19,6 +20,7 @@ def register_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
     service = TenantService(db)
     return service.register_tenant(
         name=tenant_in.name,
+        commercial_name=tenant_in.commercial_name,
         admin_email=tenant_in.admin_email,
         admin_password=tenant_in.admin_password,
         admin_full_name=tenant_in.admin_full_name
@@ -27,6 +29,7 @@ def register_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
 
 class TenantUpdate(BaseModel):
     name: str | None = None
+    commercial_name: str | None = None
     email: str | None = None
     plan: str | None = None
     whatsapp_enabled: bool | None = None

@@ -23,8 +23,8 @@ const DashboardHome: React.FC = () => {
         const fetchDashboardData = async () => {
             try {
                 const profileRes = await axiosInstance.get('/auth/me');
-                if (profileRes.data.tenant && profileRes.data.tenant.name) {
-                    setTenantName(profileRes.data.tenant.name);
+                if (profileRes.data.tenant && profileRes.data.tenant.commercial_name) {
+                    setTenantName(profileRes.data.tenant.commercial_name);
                 }
 
                 const [propRes, peopleRes, contractsRes] = await Promise.all([

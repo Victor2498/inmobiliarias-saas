@@ -6,6 +6,7 @@ class TenantModel(Base):
     __tablename__ = "tenants"
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True, index=True)
+    commercial_name = Column(String, nullable=True)  # Nombre comercial de la inmobiliaria
     email = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     plan_id = Column(String, default="lite")
