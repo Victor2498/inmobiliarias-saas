@@ -32,39 +32,25 @@ class AIAgentService:
                 db.commit()
                 return
 
-            # 2. Llamada a OpenAI (Desacoplado)
-            logger.info(f"🤖 Llamando a OpenAI para detectar intención...")
-            intent = await OpenAIService.detect_intent(content)
-            logger.info(f"🧠 Intención detectada: {intent}")
+            # 2. Generación de Respuesta Inteligente
+            logger.info(f"🤖 Llamando a OpenAI para generar respuesta dinámica...")
             
-            reply_text = "Gracias por tu mensaje. Un asesor se pondrá en contacto contigo a la brevedad."
-            
-            # 2.5 Buscar propiedades si la intención es inmobiliaria
+            # Obtener contexto de propiedades
             from app.application.services.property_service import PropertyService
             prop_service = PropertyService(db)
-
-            if intent == "ALQUILER":
-                properties = prop_service.get_available_by_tenant(message.tenant_id, limit=3)
-                if properties:
-                    reply_text = "🏠 *¡Hola! Aquí tienes algunas opciones de alquiler disponibles:*\n\n"
-                    for p in properties:
-                        reply_text += f"📌 *{p.title}*\n📍 {p.address}\n💰 {p.currency} {p.price:,.0f}\n---\n"
-                    reply_text += "\n¿Te interesa alguna de estas o buscas algo diferente?"
-                else:
-                    reply_text = "¡Hola! Veo que buscas alquilar. Por el momento no tengo opciones disponibles en sistema, pero puedo avisarte apenas ingrese algo. ¿En qué zona buscas?"
+            available_props = prop_service.get_available_by_tenant(message.tenant_id, limit=5)
             
-            elif intent == "COMPRA":
-                properties = prop_service.get_available_by_tenant(message.tenant_id, limit=3)
-                if properties:
-                    reply_text = "🏠 *¡Hola! Estas son algunas de nuestras propiedades en venta:*\n\n"
-                    for p in properties:
-                        reply_text += f"📌 *{p.title}*\n📍 {p.address}\n💰 {p.currency} {p.price:,.0f}\n---\n"
-                    reply_text += "\n¿Te gustaría coordinar una visita para ver alguna?"
-                else:
-                    reply_text = "¡Hola! Para comprar, ¿qué presupuesto estás manejando y qué zona prefieres? En este momento no tengo propiedades cargadas que coincidan, pero puedo buscar por ti."
+            agency_name = tenant.name if tenant else "Inmonea"
             
-            elif intent == "TASACION":
-                reply_text = "Para realizar una tasación necesitamos saber la dirección de la propiedad y si es casa o departamento. ¿Te gustaría agendar una visita?"
+            reply_text = await OpenAIService.generate_response(
+                message_text=content,
+                agency_name=agency_name,
+                available_properties=available_props
+            )
+            
+            # 2.5 Detección de intención para registro (opcional, para stats)
+            intent = await OpenAIService.detect_intent(content)
+            logger.info(f"🧠 Respuesta generada para intención {intent}")
             
             # 3. Actualizar con resultado
             message.intent = intent
