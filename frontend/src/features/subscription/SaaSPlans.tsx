@@ -42,7 +42,7 @@ const SaaSPlans: React.FC = () => {
                     </div>
 
                     <div className="text-4xl font-black text-white mb-8">
-                        $5.000 <span className="text-lg text-slate-500">/mes</span>
+                        $45.000 <span className="text-lg text-slate-500">/mes</span>
                     </div>
 
                     <ul className="space-y-4 mb-10">
@@ -77,7 +77,7 @@ const SaaSPlans: React.FC = () => {
                     </div>
 
                     <div className="text-4xl font-black text-white mb-8">
-                        $15.000 <span className="text-lg text-slate-500">/mes</span>
+                        $65.000 <span className="text-lg text-slate-500">/mes</span>
                     </div>
 
                     <ul className="space-y-4 mb-10">
